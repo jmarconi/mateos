@@ -1,0 +1,87 @@
+.param {
+  display: inline-block;
+  margin: 2em;
+  align: top;
+  position: relative;
+  background-color: #8c8c8c; }
+  .param.selected:after {
+    pointer-events: none;
+    content: " ";
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    box-sizing: border-box;
+    border: 0.1em solid black;
+    z-index: 40; }
+
+.param.toggle {
+  width: 3em;
+  height: 3em;
+  background-color: #8c8c8c; }
+
+.param.toggle.on {
+  background-color: yellow; }
+
+.param.slider .groove {
+  position: absolute;
+  background-color: #333;
+  pointer-events: none; }
+
+.param.slider .handle {
+  position: absolute;
+  will-change: transform;
+  box-sizing: border-box;
+  pointer-events: none;
+  height: 0em;
+  width: 0em; }
+
+.param.slider {
+  height: 16em;
+  width: 3em; }
+
+.param.horiz.slider {
+  height: 3em;
+  width: 16em; }
+
+.param.slider .handle {
+  top: 0.5em;
+  left: 1.6em;
+  border: 1em solid #8c8c8c;
+  border-left: none;
+  border-right: 1.1em solid #333; }
+
+.param.horiz.slider .handle {
+  left: 0.5em;
+  top: 1.6em;
+  border: 1em solid #8c8c8c;
+  border-top: none;
+  border-bottom: 1.1em solid #333; }
+
+.param.horiz.slider .groove {
+  top: 1.4em;
+  bottom: 1.4em;
+  left: 1.5em;
+  right: 1.5em; }
+
+.param.slider .groove {
+  top: 1.5em;
+  bottom: 1.5em;
+  left: 1.4em;
+  right: 1.4em; }
+
+.param.knob {
+  height: 3em;
+  width: 3em;
+  background-color: #8c8c8c; }
+  .param.knob svg {
+    pointer-events: none;
+    position: absolute;
+    height: 100%;
+    width: 100%; }
+    .param.knob svg path {
+      fill: none;
+      stroke-width: 7; }
+      .param.knob svg path.orange {
+        stroke: #ff8000; }
+      .param.knob svg path.black {
+        stroke: black; }
