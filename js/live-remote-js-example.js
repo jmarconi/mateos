@@ -33,4 +33,14 @@ RemoteApi.onOpen(function() {
 		t.api(api)  
 		$(document.body).append(t.div())  
 	})  
+	
+	RemoteApi.create("live_set tracks 3 mixer_device volume", function(errY, apiY) {
+		RemoteApi.create("live_set tracks 3 mixer_device panning", function(err, api) {
+			var pad = new params.XYPad()
+			pad.api(api)
+			pad.apiY(apiY)
+			$(document.body).append(pad.div())
+			
+		})
+	})
 })
