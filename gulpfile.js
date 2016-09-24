@@ -8,7 +8,7 @@ var glob = require("glob")
 
 
 gulp.task("default", function() {
-	gulp.watch("src/**/*.js", ["browserify"])
+	gulp.watch("js/**/*.js", ["browserify"])
 	gulp.start("browserify")
 	return copyCss()
 })
