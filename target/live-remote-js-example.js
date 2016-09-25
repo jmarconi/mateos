@@ -10765,8 +10765,14 @@ var globl;
 
 },{"live-remote-api":3}],14:[function(require,module,exports){
 "use strict";
-Element.prototype.requestPointerLock = Element.prototype.requestPointerLock || Element.prototype.mozRequestPointerLock || Element.prototype.webkitRequestPointerLock;
-document.exitPointerLock = document.exitPointerLock || document.mozExitPointerLock || document.webkitExitPointerLock;
+if ("ontouchstart" in document) {
+    Element.prototype.requestPointerLock = function () { };
+    document.exitPointerLock = function () { };
+}
+else {
+    Element.prototype.requestPointerLock = Element.prototype.requestPointerLock || Element.prototype.mozRequestPointerLock || Element.prototype.webkitRequestPointerLock;
+    document.exitPointerLock = document.exitPointerLock || document.mozExitPointerLock || document.webkitExitPointerLock;
+}
 var Toggle_1 = require("./Toggle");
 var Slider_1 = require("./Slider");
 var HSlider_1 = require("./HSlider");
