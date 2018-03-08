@@ -25,7 +25,6 @@ gulp.task("browserify", function() {
 	.on("error", function(e) {
 		console.log("Error in browserify: " + e.message)
 	})
-	// .pipe(source("live-remote-js-example.js","metronome.js"))
 	.pipe(source("live-remote-js-example.js"))
 	.pipe(gulp.dest("target"))
 })

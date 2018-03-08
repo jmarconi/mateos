@@ -6,7 +6,7 @@ var tempo = 120.0;          // tempo (in beats per minute)
 var lookahead = 25.0;       // How frequently to call scheduling function 
                             //(in milliseconds)
 var scheduleAheadTime = 0.1;    // How far ahead to schedule audio (sec)
-                            // This is calculated from lookahead, and overlaps 
+                            // This is calculated from lookahead, and overlaps
                             // with next interval (in case the timer is late)
 var nextNoteTime = 0.0;     // when the next note is due.
 var noteResolution = 0;     // 0 == 16th, 1 == 8th, 2 == quarter note
@@ -32,8 +32,9 @@ window.requestAnimFrame = (function(){
 })();
 
 function nextNote() {
+    console.log("next note " + current16thNote);
     // Advance current note and time by a 16th note...
-    var secondsPerBeat = 60.0 / tempo;    // Notice this picks up the CURRENT 
+    var secondsPerBeat = 60.0 / tempo;    // Notice this picks up the CURRENT
                                           // tempo value to calculate beat length.
     nextNoteTime += 0.25 * secondsPerBeat;    // Add beat length to last beat time
 
@@ -44,6 +45,7 @@ function nextNote() {
 }
 
 function scheduleNote( beatNumber, time ) {
+    console.log("schedule note beat: " + beatNumber + " time: " + time);
     // push the note on the queue, even if we're not playing.
     notesInQueue.push( { note: beatNumber, time: time } );
 
@@ -52,24 +54,29 @@ function scheduleNote( beatNumber, time ) {
     if ( (noteResolution==2) && (beatNumber%4))
         return; // we're not playing non-quarter 8th notes
 
-    // create an oscillator
-    // var osc = audioContext.createOscillator();
-    // osc.connect( audioContext.destination );
-    // if (beatNumber % 16 === 0)    // beat 0 == high pitch
-        // osc.frequency.value = 880.0;
-    // else if (beatNumber % 4 === 0 )    // quarter notes = medium pitch
-        // osc.frequency.value = 440.0;
-    // else                        // other 16th notes = low pitch
-        // osc.frequency.value = 220.0;
 
-    // osc.start( time );
-    // osc.stop( time + noteLength );
+    //create an oscillator
+
+     // var osc = audioContext.createOscillator();
+     // osc.connect( audioContext.destination );
+    // if (beatNumber % 16 === 0)    // beat 0 == high pitch
+    //     osc.frequency.value = 880.0;
+    // else if (beatNumber % 4 === 0 )    // quarter notes = medium pitch
+    //     osc.frequency.value = 440.0;
+    // else                        // other 16th notes = low pitch
+    //     osc.frequency.value = 220.0;
+    //
+    //  osc.start( time );
+    //  osc.stop( time + noteLength );
 }
 
 function scheduler() {
-    // while there are notes that will need to play before the next interval, 
+    // while there are notes that will need to play before the next interval,
     // schedule them and advance the pointer.
+    // console.log(nextNoteTime );
+    // console.log(audioContext.currentTime );
     while (nextNoteTime < audioContext.currentTime + scheduleAheadTime ) {
+        // console.log("schedule note beat: " + current16thNote + " time: " + nextNoteTime);
         scheduleNote( current16thNote, nextNoteTime );
         nextNote();
     }
@@ -80,7 +87,7 @@ function play() {
 
     if (isPlaying) { // start playing
         current16thNote = 0;
-        nextNoteTime = audioContext.currentTime;
+
         timerWorker.postMessage("start");
         return "stop";
     } else {
@@ -95,7 +102,7 @@ function resetCanvas (e) {
     canvas.height = window.innerHeight;
 
     //make sure we scroll to the top left.
-    window.scrollTo(0,0); 
+    window.scrollTo(0,0);
 }
 
 function draw() {
@@ -109,14 +116,15 @@ function draw() {
 
     // We only need to draw if the note has moved.
     if (last16thNoteDrawn != currentNote) {
-        var x = Math.floor( canvas.width / 18 );
-        canvasContext.clearRect(0,0,canvas.width, canvas.height); 
-        for (var i=0; i<16; i++) {
-            canvasContext.fillStyle = ( currentNote == i ) ? 
-                ((currentNote%4 === 0)?"red":"blue") : "black";
-            canvasContext.fillRect( x * (i+1), x, x/2, x/2 );
-        }
-        last16thNoteDrawn = currentNote;
+        $("#beat-counter").toggleClass('beat-on');
+        // var x = Math.floor( canvas.width / 18 );
+        // canvasContext.clearRect(0,0,canvas.width, canvas.height);
+        // for (var i=0; i<16; i++) {
+            // canvasContext.fillStyle = ( currentNote == i ) ?
+                // ((currentNote%4 === 0)?"red":"blue") : "black";
+            // canvasContext.fillRect( x * (i+1), x, x/2, x/2 );
+        // }
+         last16thNoteDrawn = currentNote;
     }
 
     // set up to draw again
@@ -124,17 +132,17 @@ function draw() {
 }
 
 function init(){
-    var container = document.createElement( 'div' );
-
-    container.className = "container";
-    canvas = document.createElement( 'canvas' );
-    canvasContext = canvas.getContext( '2d' );
-    canvas.width = window.innerWidth; 
-    canvas.height = window.innerHeight; 
-    document.body.appendChild( container );
-    container.appendChild(canvas);    
-    canvasContext.strokeStyle = "#ffffff";
-    canvasContext.lineWidth = 2;
+   // var container = document.createElement( 'div' );
+    //
+    // container.className = "container";
+    // canvas = document.createElement( 'canvas' );
+    // canvasContext = canvas.getContext( '2d' );
+    // canvas.width = window.innerWidth;
+    // canvas.height = window.innerHeight;
+    // document.body.appendChild( container );
+    // container.appendChild(canvas);
+    // canvasContext.strokeStyle = "#ffffff";
+    // canvasContext.lineWidth = 2;
 
     // NOTE: THIS RELIES ON THE MONKEYPATCH LIBRARY BEING LOADED FROM
     // Http://cwilso.github.io/AudioContext-MonkeyPatch/AudioContextMonkeyPatch.js
@@ -143,23 +151,31 @@ function init(){
 
     audioContext = new AudioContext();
 
-    // if we wanted to load audio files, etc., this is where we should do it.
+    // // if we wanted to load audio files, etc., this is where we should do it.
+    // var osc = audioContext.createOscillator();
+    // osc.connect( audioContext.destination );
+    //
+    // osc.frequency.value = 220.0;
+    //
+    //  osc.start( audioContext.currentTime + scheduleAheadTime  );
+    //  osc.stop( audioContext.currentTime + scheduleAheadTime  + noteLength );
 
-    window.onorientationchange = resetCanvas;
-    window.onresize = resetCanvas;
+
+    // window.onorientationchange = resetCanvas;
+    // window.onresize = resetCanvas;
 
     requestAnimFrame(draw);    // start the drawing loop.
 
     timerWorker = new Worker("metronomeworker.js");
-
     timerWorker.onmessage = function(e) {
         if (e.data == "tick") {
-            // console.log("tick!");
             scheduler();
         }
         else
             console.log("message: " + e.data);
     };
     timerWorker.postMessage({"interval":lookahead});
+
 }
-//window.addEventListener("load", init );
+
+window.addEventListener("load", init );

@@ -23,29 +23,39 @@ RemoteApi.onOpen(function() {
 		// $(document.body).append(knob.div())  
 	// })  
 
-	// RemoteApi.create("live_set master_track mixer_device volume", function(err, api) {  
-		// var slider = new params.Slider()  
-		// slider.api(api)  
-		// $(document.body).append(slider.div())  
-	// })  
-	RemoteApi.create("live_set tracks 1 mixer_device track_activator", function(err, api) {  
-		var t = new params.Toggle()  
-		t.api(api)  
-		$(document.body).append(t.div())  
-	})  
-	
-	RemoteApi.create("live_set tracks 2 mixer_device track_activator", function(err, api) {  
-		var t = new params.Toggle()  
-		t.api(api)  
-		$(document.body).append(t.div())  
-	})  
-	
-	RemoteApi.create("live_set tracks 3 mixer_device track_activator", function(err, api) {  
-		var t = new params.Toggle()  
-		t.api(api)  
-		$(document.body).append(t.div())  
-	})  
+	RemoteApi.create("live_set master_track mixer_device volume", function(err, api) {
+		var slider = new params.Slider()
+		slider.api(api)
+		$(document.body).append(slider.div())
+	})
+	RemoteApi.create("live_set tracks 1 mixer_device track_activator", function(err, api) {
+		var t = new params.Toggle()
+		t.api(api)
+		$(document.body).append(t.div())
+	})
 
+	RemoteApi.create("live_set tracks 2 mixer_device track_activator", function(err, api) {
+		var t = new params.Toggle()
+		t.api(api)
+		$(document.body).append(t.div())
+	})
+
+	RemoteApi.create("live_set tracks 3 mixer_device track_activator", function(err, api) {
+		var t = new params.Toggle()
+		t.api(api)
+		$(document.body).append(t.div())
+	})
+
+	RemoteApi.create("live_set tracks 1 clip_slots 0", function(err, api) {
+		// RemoteApi.call('fire');
+		//  var t = new params.Toggle()
+		//  t.api(api)
+		//  $(document.body).append(t.div())
+	})
+	// Similarly, to access the fourth clip on Track 3, the path would be:
+
+	
+	
 	
 	// RemoteApi.create("live_set tracks 3 mixer_device volume", function(errY, apiY) {
 		// RemoteApi.create("live_set tracks 3 mixer_device panning", function(err, api) {

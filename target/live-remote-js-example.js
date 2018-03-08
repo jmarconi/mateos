@@ -24,29 +24,39 @@ RemoteApi.onOpen(function() {
 		// $(document.body).append(knob.div())  
 	// })  
 
-	// RemoteApi.create("live_set master_track mixer_device volume", function(err, api) {  
-		// var slider = new params.Slider()  
-		// slider.api(api)  
-		// $(document.body).append(slider.div())  
-	// })  
-	RemoteApi.create("live_set tracks 1 mixer_device track_activator", function(err, api) {  
-		var t = new params.Toggle()  
-		t.api(api)  
-		$(document.body).append(t.div())  
-	})  
-	
-	RemoteApi.create("live_set tracks 2 mixer_device track_activator", function(err, api) {  
-		var t = new params.Toggle()  
-		t.api(api)  
-		$(document.body).append(t.div())  
-	})  
-	
-	RemoteApi.create("live_set tracks 3 mixer_device track_activator", function(err, api) {  
-		var t = new params.Toggle()  
-		t.api(api)  
-		$(document.body).append(t.div())  
-	})  
+	RemoteApi.create("live_set master_track mixer_device volume", function(err, api) {
+		var slider = new params.Slider()
+		slider.api(api)
+		$(document.body).append(slider.div())
+	})
+	RemoteApi.create("live_set tracks 1 mixer_device track_activator", function(err, api) {
+		var t = new params.Toggle()
+		t.api(api)
+		$(document.body).append(t.div())
+	})
 
+	RemoteApi.create("live_set tracks 2 mixer_device track_activator", function(err, api) {
+		var t = new params.Toggle()
+		t.api(api)
+		$(document.body).append(t.div())
+	})
+
+	RemoteApi.create("live_set tracks 3 mixer_device track_activator", function(err, api) {
+		var t = new params.Toggle()
+		t.api(api)
+		$(document.body).append(t.div())
+	})
+
+	RemoteApi.create("live_set tracks 1 clip_slots 0", function(err, api) {
+		// RemoteApi.call('fire');
+		//  var t = new params.Toggle()
+		//  t.api(api)
+		//  $(document.body).append(t.div())
+	})
+	// Similarly, to access the fourth clip on Track 3, the path would be:
+
+	
+	
 	
 	// RemoteApi.create("live_set tracks 3 mixer_device volume", function(errY, apiY) {
 		// RemoteApi.create("live_set tracks 3 mixer_device panning", function(err, api) {
@@ -58,173 +68,7 @@ RemoteApi.onOpen(function() {
 		// })
 	// })
 })
-},{"jquery":3,"live-remote-api":4,"live-remote-params":15}],2:[function(require,module,exports){
-var audioContext = null;
-var isPlaying = false;      // Are we currently playing?
-var startTime;              // The start time of the entire sequence.
-var current16thNote;        // What note is currently last scheduled?
-var tempo = 120.0;          // tempo (in beats per minute)
-var lookahead = 25.0;       // How frequently to call scheduling function 
-                            //(in milliseconds)
-var scheduleAheadTime = 0.1;    // How far ahead to schedule audio (sec)
-                            // This is calculated from lookahead, and overlaps 
-                            // with next interval (in case the timer is late)
-var nextNoteTime = 0.0;     // when the next note is due.
-var noteResolution = 0;     // 0 == 16th, 1 == 8th, 2 == quarter note
-var noteLength = 0.05;      // length of "beep" (in seconds)
-var canvas,                 // the canvas element
-    canvasContext;          // canvasContext is the canvas' context 2D
-var last16thNoteDrawn = -1; // the last "box" we drew on the screen
-var notesInQueue = [];      // the notes that have been put into the web audio,
-                            // and may or may not have played yet. {note, time}
-var timerWorker = null;     // The Web Worker used to fire timer messages
-
-
-// First, let's shim the requestAnimationFrame API, with a setTimeout fallback
-window.requestAnimFrame = (function(){
-    return  window.requestAnimationFrame ||
-    window.webkitRequestAnimationFrame ||
-    window.mozRequestAnimationFrame ||
-    window.oRequestAnimationFrame ||
-    window.msRequestAnimationFrame ||
-    function( callback ){
-        window.setTimeout(callback, 1000 / 60);
-    };
-})();
-
-function nextNote() {
-    // Advance current note and time by a 16th note...
-    var secondsPerBeat = 60.0 / tempo;    // Notice this picks up the CURRENT 
-                                          // tempo value to calculate beat length.
-    nextNoteTime += 0.25 * secondsPerBeat;    // Add beat length to last beat time
-
-    current16thNote++;    // Advance the beat number, wrap to zero
-    if (current16thNote == 16) {
-        current16thNote = 0;
-    }
-}
-
-function scheduleNote( beatNumber, time ) {
-    // push the note on the queue, even if we're not playing.
-    notesInQueue.push( { note: beatNumber, time: time } );
-
-    if ( (noteResolution==1) && (beatNumber%2))
-        return; // we're not playing non-8th 16th notes
-    if ( (noteResolution==2) && (beatNumber%4))
-        return; // we're not playing non-quarter 8th notes
-
-    // create an oscillator
-    // var osc = audioContext.createOscillator();
-    // osc.connect( audioContext.destination );
-    // if (beatNumber % 16 === 0)    // beat 0 == high pitch
-        // osc.frequency.value = 880.0;
-    // else if (beatNumber % 4 === 0 )    // quarter notes = medium pitch
-        // osc.frequency.value = 440.0;
-    // else                        // other 16th notes = low pitch
-        // osc.frequency.value = 220.0;
-
-    // osc.start( time );
-    // osc.stop( time + noteLength );
-}
-
-function scheduler() {
-    // while there are notes that will need to play before the next interval, 
-    // schedule them and advance the pointer.
-    while (nextNoteTime < audioContext.currentTime + scheduleAheadTime ) {
-        scheduleNote( current16thNote, nextNoteTime );
-        nextNote();
-    }
-}
-
-function play() {
-    isPlaying = !isPlaying;
-
-    if (isPlaying) { // start playing
-        current16thNote = 0;
-        nextNoteTime = audioContext.currentTime;
-        timerWorker.postMessage("start");
-        return "stop";
-    } else {
-        timerWorker.postMessage("stop");
-        return "play";
-    }
-}
-
-function resetCanvas (e) {
-    // resize the canvas - but remember - this clears the canvas too.
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    //make sure we scroll to the top left.
-    window.scrollTo(0,0); 
-}
-
-function draw() {
-    var currentNote = last16thNoteDrawn;
-    var currentTime = audioContext.currentTime;
-
-    while (notesInQueue.length && notesInQueue[0].time < currentTime) {
-        currentNote = notesInQueue[0].note;
-        notesInQueue.splice(0,1);   // remove note from queue
-    }
-
-    // We only need to draw if the note has moved.
-    if (last16thNoteDrawn != currentNote) {
-        var x = Math.floor( canvas.width / 18 );
-        canvasContext.clearRect(0,0,canvas.width, canvas.height); 
-        for (var i=0; i<16; i++) {
-            canvasContext.fillStyle = ( currentNote == i ) ? 
-                ((currentNote%4 === 0)?"red":"blue") : "black";
-            canvasContext.fillRect( x * (i+1), x, x/2, x/2 );
-        }
-        last16thNoteDrawn = currentNote;
-    }
-
-    // set up to draw again
-    requestAnimFrame(draw);
-}
-
-function init(){
-    var container = document.createElement( 'div' );
-
-    container.className = "container";
-    canvas = document.createElement( 'canvas' );
-    canvasContext = canvas.getContext( '2d' );
-    canvas.width = window.innerWidth; 
-    canvas.height = window.innerHeight; 
-    document.body.appendChild( container );
-    container.appendChild(canvas);    
-    canvasContext.strokeStyle = "#ffffff";
-    canvasContext.lineWidth = 2;
-
-    // NOTE: THIS RELIES ON THE MONKEYPATCH LIBRARY BEING LOADED FROM
-    // Http://cwilso.github.io/AudioContext-MonkeyPatch/AudioContextMonkeyPatch.js
-    // TO WORK ON CURRENT CHROME!!  But this means our code can be properly
-    // spec-compliant, and work on Chrome, Safari and Firefox.
-
-    audioContext = new AudioContext();
-
-    // if we wanted to load audio files, etc., this is where we should do it.
-
-    window.onorientationchange = resetCanvas;
-    window.onresize = resetCanvas;
-
-    requestAnimFrame(draw);    // start the drawing loop.
-
-    timerWorker = new Worker("metronomeworker.js");
-
-    timerWorker.onmessage = function(e) {
-        if (e.data == "tick") {
-            // console.log("tick!");
-            scheduler();
-        }
-        else
-            console.log("message: " + e.data);
-    };
-    timerWorker.postMessage({"interval":lookahead});
-}
-//window.addEventListener("load", init );
-},{}],3:[function(require,module,exports){
+},{"jquery":2,"live-remote-api":3,"live-remote-params":14}],2:[function(require,module,exports){
 /*eslint-disable no-unused-vars*/
 /*!
  * jQuery JavaScript Library v3.1.0
@@ -10300,7 +10144,7 @@ if ( !noGlobal ) {
 return jQuery;
 } );
 
-},{}],4:[function(require,module,exports){
+},{}],3:[function(require,module,exports){
 "use strict";
 var socket_1 = require("./socket");
 var RemoteApi = (function () {
@@ -10385,7 +10229,7 @@ var RemoteApi = (function () {
 }());
 exports.RemoteApi = RemoteApi;
 
-},{"./socket":5}],5:[function(require,module,exports){
+},{"./socket":4}],4:[function(require,module,exports){
 "use strict";
 var ssplit = require("string-split-keep");
 var mess_id = 0;
@@ -10480,7 +10324,7 @@ function callListener(l, val, err_mess) {
     }
 }
 
-},{"string-split-keep":16}],6:[function(require,module,exports){
+},{"string-split-keep":15}],5:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -10556,7 +10400,7 @@ function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
     };
 }
 
-},{"./AbstractParam":7,"jquery":3}],7:[function(require,module,exports){
+},{"./AbstractParam":6,"jquery":2}],6:[function(require,module,exports){
 "use strict";
 var $ = require("jquery");
 var globl_1 = require("./globl");
@@ -10634,7 +10478,7 @@ var AbstractParam = (function () {
 }());
 exports.AbstractParam = AbstractParam;
 
-},{"./globl":14,"jquery":3}],8:[function(require,module,exports){
+},{"./globl":13,"jquery":2}],7:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -10683,7 +10527,7 @@ var HSlider = (function (_super) {
 }(AbstractParam_1.AbstractParam));
 exports.HSlider = HSlider;
 
-},{"./AbstractParam":7,"jquery":3}],9:[function(require,module,exports){
+},{"./AbstractParam":6,"jquery":2}],8:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -10706,7 +10550,7 @@ var Knob = (function (_super) {
 }(AbstractKnob_1.AbstractKnob));
 exports.Knob = Knob;
 
-},{"./AbstractKnob":6}],10:[function(require,module,exports){
+},{"./AbstractKnob":5}],9:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -10729,7 +10573,7 @@ var PanKnob = (function (_super) {
 }(AbstractKnob_1.AbstractKnob));
 exports.PanKnob = PanKnob;
 
-},{"./AbstractKnob":6}],11:[function(require,module,exports){
+},{"./AbstractKnob":5}],10:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -10778,7 +10622,7 @@ var Slider = (function (_super) {
 }(AbstractParam_1.AbstractParam));
 exports.Slider = Slider;
 
-},{"./AbstractParam":7,"jquery":3}],12:[function(require,module,exports){
+},{"./AbstractParam":6,"jquery":2}],11:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -10805,7 +10649,7 @@ var Toggle = (function (_super) {
 }(AbstractParam_1.AbstractParam));
 exports.Toggle = Toggle;
 
-},{"./AbstractParam":7}],13:[function(require,module,exports){
+},{"./AbstractParam":6}],12:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -10906,7 +10750,7 @@ var XYPad = (function (_super) {
 }(AbstractParam_1.AbstractParam));
 exports.XYPad = XYPad;
 
-},{"./AbstractParam":7,"jquery":3}],14:[function(require,module,exports){
+},{"./AbstractParam":6,"jquery":2}],13:[function(require,module,exports){
 "use strict";
 var live_remote_api_1 = require("live-remote-api");
 var selectedParam;
@@ -10942,7 +10786,7 @@ var globl;
     globl.deselect = deselect;
 })(globl = exports.globl || (exports.globl = {}));
 
-},{"live-remote-api":4}],15:[function(require,module,exports){
+},{"live-remote-api":3}],14:[function(require,module,exports){
 "use strict";
 if ("ontouchstart" in document) {
     Element.prototype.requestPointerLock = function () { };
@@ -10968,7 +10812,7 @@ var params;
     params.XYPad = XYPad_1.XYPad;
 })(params = exports.params || (exports.params = {}));
 
-},{"./HSlider":8,"./Knob":9,"./PanKnob":10,"./Slider":11,"./Toggle":12,"./XYPad":13}],16:[function(require,module,exports){
+},{"./HSlider":7,"./Knob":8,"./PanKnob":9,"./Slider":10,"./Toggle":11,"./XYPad":12}],15:[function(require,module,exports){
 "use strict"
 
 module.exports = function(str, separator, limit) {
@@ -11017,4 +10861,4 @@ function splitEnd(str, sep, lim, cur, acc) {
 }
 
 
-},{}]},{},[1,2]);
+},{}]},{},[1]);
