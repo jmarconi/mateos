@@ -1,7 +1,7 @@
 var RemoteApi = require("live-remote-api").RemoteApi;
 
 
-RemoteApi.onOpen(function() {
+RemoteApi.onOpen(function () {
     window.addEventListener("load", metronome.init);
 })
 
@@ -12,7 +12,6 @@ var canvas;
 var canvasContext;
 // The Web Worker used to fire timer messages
 var timerWorker = null;
-
 
 
 var metronome = {
@@ -35,7 +34,7 @@ var metronome = {
     last16thNoteDrawn: -1,
     // the notes that have been put into the web audio, and may or may not have played yet. {note, time}
     notesInQueue: [],
-
+    compass: 1,
 
 
     nextNote: function () {
@@ -47,8 +46,15 @@ var metronome = {
         this.nextNoteTime += 0.25 * secondsPerBeat;
 
         this.current16thNote++;    // Advance the beat number, wrap to zero
-        if (this.current16thNote == 16) {
-            this.current16thNote = 0;
+        if (this.current16thNote > 16) {
+
+            this.compass++;
+            if (this.compass > 4) {
+                this.compass = 1;
+            }
+
+            this.current16thNote = 1;
+
         }
     },
 
@@ -64,24 +70,51 @@ var metronome = {
 
         //$("#beat-counter").text("beat number: " + beatNumber);
 
-        if (beatNumber % 2) {
-            $(".ui-snare").removeClass("active");
-            $('.ui-snare[beat=' + Math.round(beatNumber / 2) + ']').addClass("active");
 
-            RemoteApi.create("live_set tracks 1 clip_slots 0", function (err, api) {
-                // api.call('fire');
-            });
+        if ((beatNumber % 8) == 0) {
+            $(".ui-tempo").removeClass("active");
 
+            const uiStep = (this.compass - 1) * 2 + Math.round(beatNumber / 8);
+
+            console.log(uiStep);
+
+            $('.ui-tempo[beat=' + uiStep + ']').addClass("active");
+
+            if($( ".ui-kick.selected[beat=" + uiStep + "]" ).length){
+                RemoteApi.create("live_set tracks 1 clip_slots 0", function (err, api) {
+                   api.call('fire');
+                });
+            }else{
+                RemoteApi.create("live_set tracks 1 clip_slots 0", function (err, api) {
+                    api.call('stop');
+                });
+            }
+
+            if($( ".ui-snare.selected[beat=" + uiStep + "]" ).length){
+                RemoteApi.create("live_set tracks 2 clip_slots 0", function (err, api) {
+                    api.call('fire');
+                });
+            }else{
+                RemoteApi.create("live_set tracks 2 clip_slots 0", function (err, api) {
+                    api.call('stop');
+                });
+            }
+
+            if($( ".ui-hihat.selected[beat=" + uiStep + "]" ).length){
+                RemoteApi.create("live_set tracks 3 clip_slots 0", function (err, api) {
+                    api.call('fire');
+                });
+            }else{
+                RemoteApi.create("live_set tracks 3 clip_slots 0", function (err, api) {
+                    api.call('stop');
+                });
+            }
         }
 
-        if (beatNumber % 4) {
-            $(".ui-snare").removeClass("active");
-            $('.ui-snare[beat=' + Math.round(beatNumber / 2) + ']').addClass("active");
-             RemoteApi.create("live_set tracks 1 clip_slots 0", function (err, api) {
-                 api.call('stop');
-             });
 
-        }
+        //  RemoteApi.create("live_set tracks 1 clip_slots 0", function (err, api) {
+        //      api.call('stop');
+        //  });
 
 
     },

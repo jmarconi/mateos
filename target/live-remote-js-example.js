@@ -73,11 +73,11 @@ RemoteApi.onOpen(function() {
 		// })
 	// })
 })
-},{"jquery":3,"live-remote-api":4,"live-remote-params":15}],2:[function(require,module,exports){
+},{"jquery":4,"live-remote-api":5,"live-remote-params":16}],2:[function(require,module,exports){
 var RemoteApi = require("live-remote-api").RemoteApi;
 
 
-RemoteApi.onOpen(function() {
+RemoteApi.onOpen(function () {
     window.addEventListener("load", metronome.init);
 })
 
@@ -88,7 +88,6 @@ var canvas;
 var canvasContext;
 // The Web Worker used to fire timer messages
 var timerWorker = null;
-
 
 
 var metronome = {
@@ -111,7 +110,7 @@ var metronome = {
     last16thNoteDrawn: -1,
     // the notes that have been put into the web audio, and may or may not have played yet. {note, time}
     notesInQueue: [],
-
+    compass: 1,
 
 
     nextNote: function () {
@@ -123,8 +122,15 @@ var metronome = {
         this.nextNoteTime += 0.25 * secondsPerBeat;
 
         this.current16thNote++;    // Advance the beat number, wrap to zero
-        if (this.current16thNote == 16) {
-            this.current16thNote = 0;
+        if (this.current16thNote > 16) {
+
+            this.compass++;
+            if (this.compass > 4) {
+                this.compass = 1;
+            }
+
+            this.current16thNote = 1;
+
         }
     },
 
@@ -140,24 +146,51 @@ var metronome = {
 
         //$("#beat-counter").text("beat number: " + beatNumber);
 
-        if (beatNumber % 2) {
-            $(".ui-snare").removeClass("active");
-            $('.ui-snare[beat=' + Math.round(beatNumber / 2) + ']').addClass("active");
 
-            RemoteApi.create("live_set tracks 1 clip_slots 0", function (err, api) {
-                // api.call('fire');
-            });
+        if ((beatNumber % 8) == 0) {
+            $(".ui-tempo").removeClass("active");
 
+            const uiStep = (this.compass - 1) * 2 + Math.round(beatNumber / 8);
+
+            console.log(uiStep);
+
+            $('.ui-tempo[beat=' + uiStep + ']').addClass("active");
+
+            if($( ".ui-kick.selected[beat=" + uiStep + "]" ).length){
+                RemoteApi.create("live_set tracks 1 clip_slots 0", function (err, api) {
+                   api.call('fire');
+                });
+            }else{
+                RemoteApi.create("live_set tracks 1 clip_slots 0", function (err, api) {
+                    api.call('stop');
+                });
+            }
+
+            if($( ".ui-snare.selected[beat=" + uiStep + "]" ).length){
+                RemoteApi.create("live_set tracks 2 clip_slots 0", function (err, api) {
+                    api.call('fire');
+                });
+            }else{
+                RemoteApi.create("live_set tracks 2 clip_slots 0", function (err, api) {
+                    api.call('stop');
+                });
+            }
+
+            if($( ".ui-hihat.selected[beat=" + uiStep + "]" ).length){
+                RemoteApi.create("live_set tracks 3 clip_slots 0", function (err, api) {
+                    api.call('fire');
+                });
+            }else{
+                RemoteApi.create("live_set tracks 3 clip_slots 0", function (err, api) {
+                    api.call('stop');
+                });
+            }
         }
 
-        if (beatNumber % 4) {
-            $(".ui-snare").removeClass("active");
-            $('.ui-snare[beat=' + Math.round(beatNumber / 2) + ']').addClass("active");
-             RemoteApi.create("live_set tracks 1 clip_slots 0", function (err, api) {
-                 api.call('stop');
-             });
 
-        }
+        //  RemoteApi.create("live_set tracks 1 clip_slots 0", function (err, api) {
+        //      api.call('stop');
+        //  });
 
 
     },
@@ -277,7 +310,37 @@ window.requestAnimFrame = (function () {
 
 
 
-},{"live-remote-api":4}],3:[function(require,module,exports){
+},{"live-remote-api":5}],3:[function(require,module,exports){
+var RemoteApi = require("live-remote-api").RemoteApi;
+
+$("#kick-container .ui-kick").click(function (event) {
+    $(this).toggleClass("selected");
+    if ($(this).attr("selected") == 'selected') {
+        $(this).attr("selected",null)
+    } else {
+        $(this).attr("selected","selected")
+    }
+});
+
+$("#snare-container .ui-snare").click(function (event) {
+    $(this).toggleClass("selected");
+    if ($(this).attr("selected") == 'selected') {
+        $(this).attr("selected",null)
+    } else {
+        $(this).attr("selected","selected")
+    }
+});
+
+$("#hihat-container .ui-hihat").click(function (event) {
+    $(this).toggleClass("selected");
+    if ($(this).attr("selected") == 'selected') {
+        $(this).attr("selected",null)
+    } else {
+        $(this).attr("selected","selected")
+    }
+});
+
+},{"live-remote-api":5}],4:[function(require,module,exports){
 /*eslint-disable no-unused-vars*/
 /*!
  * jQuery JavaScript Library v3.1.0
@@ -10353,7 +10416,7 @@ if ( !noGlobal ) {
 return jQuery;
 } );
 
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 "use strict";
 var socket_1 = require("./socket");
 var RemoteApi = (function () {
@@ -10438,7 +10501,7 @@ var RemoteApi = (function () {
 }());
 exports.RemoteApi = RemoteApi;
 
-},{"./socket":5}],5:[function(require,module,exports){
+},{"./socket":6}],6:[function(require,module,exports){
 "use strict";
 var ssplit = require("string-split-keep");
 var mess_id = 0;
@@ -10533,7 +10596,7 @@ function callListener(l, val, err_mess) {
     }
 }
 
-},{"string-split-keep":16}],6:[function(require,module,exports){
+},{"string-split-keep":17}],7:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -10609,7 +10672,7 @@ function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
     };
 }
 
-},{"./AbstractParam":7,"jquery":3}],7:[function(require,module,exports){
+},{"./AbstractParam":8,"jquery":4}],8:[function(require,module,exports){
 "use strict";
 var $ = require("jquery");
 var globl_1 = require("./globl");
@@ -10687,7 +10750,7 @@ var AbstractParam = (function () {
 }());
 exports.AbstractParam = AbstractParam;
 
-},{"./globl":14,"jquery":3}],8:[function(require,module,exports){
+},{"./globl":15,"jquery":4}],9:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -10736,7 +10799,7 @@ var HSlider = (function (_super) {
 }(AbstractParam_1.AbstractParam));
 exports.HSlider = HSlider;
 
-},{"./AbstractParam":7,"jquery":3}],9:[function(require,module,exports){
+},{"./AbstractParam":8,"jquery":4}],10:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -10759,7 +10822,7 @@ var Knob = (function (_super) {
 }(AbstractKnob_1.AbstractKnob));
 exports.Knob = Knob;
 
-},{"./AbstractKnob":6}],10:[function(require,module,exports){
+},{"./AbstractKnob":7}],11:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -10782,7 +10845,7 @@ var PanKnob = (function (_super) {
 }(AbstractKnob_1.AbstractKnob));
 exports.PanKnob = PanKnob;
 
-},{"./AbstractKnob":6}],11:[function(require,module,exports){
+},{"./AbstractKnob":7}],12:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -10831,7 +10894,7 @@ var Slider = (function (_super) {
 }(AbstractParam_1.AbstractParam));
 exports.Slider = Slider;
 
-},{"./AbstractParam":7,"jquery":3}],12:[function(require,module,exports){
+},{"./AbstractParam":8,"jquery":4}],13:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -10858,7 +10921,7 @@ var Toggle = (function (_super) {
 }(AbstractParam_1.AbstractParam));
 exports.Toggle = Toggle;
 
-},{"./AbstractParam":7}],13:[function(require,module,exports){
+},{"./AbstractParam":8}],14:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -10959,7 +11022,7 @@ var XYPad = (function (_super) {
 }(AbstractParam_1.AbstractParam));
 exports.XYPad = XYPad;
 
-},{"./AbstractParam":7,"jquery":3}],14:[function(require,module,exports){
+},{"./AbstractParam":8,"jquery":4}],15:[function(require,module,exports){
 "use strict";
 var live_remote_api_1 = require("live-remote-api");
 var selectedParam;
@@ -10995,7 +11058,7 @@ var globl;
     globl.deselect = deselect;
 })(globl = exports.globl || (exports.globl = {}));
 
-},{"live-remote-api":4}],15:[function(require,module,exports){
+},{"live-remote-api":5}],16:[function(require,module,exports){
 "use strict";
 if ("ontouchstart" in document) {
     Element.prototype.requestPointerLock = function () { };
@@ -11021,7 +11084,7 @@ var params;
     params.XYPad = XYPad_1.XYPad;
 })(params = exports.params || (exports.params = {}));
 
-},{"./HSlider":8,"./Knob":9,"./PanKnob":10,"./Slider":11,"./Toggle":12,"./XYPad":13}],16:[function(require,module,exports){
+},{"./HSlider":9,"./Knob":10,"./PanKnob":11,"./Slider":12,"./Toggle":13,"./XYPad":14}],17:[function(require,module,exports){
 "use strict"
 
 module.exports = function(str, separator, limit) {
@@ -11070,4 +11133,4 @@ function splitEnd(str, sep, lim, cur, acc) {
 }
 
 
-},{}]},{},[1,2]);
+},{}]},{},[1,2,3]);

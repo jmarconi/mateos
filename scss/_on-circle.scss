@@ -6,11 +6,11 @@
 /// @param {Length} $item-size - Single item size
 @mixin on-circle($item-count, $circle-size, $item-size) {
     position: relative;
-    width:  $circle-size;
-    height: $circle-size;
-    padding: 0;
-    border-radius: 50%;
-    list-style: none;
+    //width:  $circle-size;
+    //height: $circle-size;
+    //padding: 0;
+   // border-radius: 50%;
+    //list-style: none;
 
     > * {
         display: block;

@@ -1,18 +1,16 @@
 @import 'on-circle';
 
 .circle-container {
-  @include on-circle($item-count: 8, $circle-size: 300px, $item-size: 90px);
-  margin: 5em auto 0;
-  border: solid 5px tomato;
+  @include on-circle($item-count: 8, $circle-size: 100px, $item-size: 30px);
 
-  div.ui-snare {
+  div.ui-tempo {
     display: block;
     max-width: 100%;
-    height: 90px;
+    height: 30px;
     border-radius: 50%;
-    background-color: #fff858;
+    background-color: cadetblue;
     //filter: grayscale(100%);
-    border: solid 5px tomato;
+
     //transition: .15s;
 
     &:hover,
@@ -20,7 +18,94 @@
       filter: grayscale(0);
     }
   }
-  div.ui-snare.active{
-    filter: grayscale(50%)
+
+  div.ui-tempo.active {
+    background-color: rebeccapurple;
   }
+}
+
+#kick-container {
+  @include on-circle($item-count: 8, $circle-size: 200px, $item-size: 60px);
+
+  div.ui-kick {
+    display: block;
+    max-width: 100%;
+    height: 60px;
+    border-radius: 50%;
+    background-color: #fff858;
+    filter: grayscale(75%);
+
+    //transition: .15s;
+
+    &:hover,
+    &:active {
+      filter: grayscale(0);
+    }
+
+  }
+  div.ui-kick.selected {
+    filter: grayscale(0);
+  }
+
+}
+
+#snare-container {
+  @include on-circle($item-count: 8, $circle-size: 300px, $item-size: 90px);
+
+  div.ui-snare {
+    display: block;
+    max-width: 100%;
+    height: 90px;
+    border-radius: 50%;
+    background-color: green;
+    filter: grayscale(75%);
+
+    //transition: .15s;
+
+    &:hover,
+    &:active {
+      filter: grayscale(0);
+    }
+
+  }
+  div.ui-snare.selected {
+    filter: grayscale(0);
+  }
+
+
+}
+
+#hihat-container {
+  @include on-circle($item-count: 8, $circle-size: 450px, $item-size: 135px);
+
+  div.ui-hihat{
+    display: block;
+    max-width: 100%;
+    height: 135px;
+    border-radius: 50%;
+    background-color: orange;
+    filter: grayscale(75%);
+
+    //transition: .15s;
+
+    &:hover,
+    &:active {
+      filter: grayscale(0);
+    }
+
+  }
+  div.ui-hihat.selected {
+    filter: grayscale(0);
+  }
+
+
+}
+
+
+.game-container {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  -webkit-transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%);
 }
