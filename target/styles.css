@@ -1,9 +1,44 @@
-#beat-counter{
-    width: 100%;
-    height: 25px;
-    background-color: aliceblue;
-}
-
-#beat-counter.beat-on{
-    background-color: grey;
-}
+.circle-container {
+  position: relative;
+  width: 300px;
+  height: 300px;
+  padding: 0;
+  border-radius: 50%;
+  list-style: none;
+  margin: 5em auto 0;
+  border: solid 5px tomato; }
+  .circle-container > * {
+    display: block;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 90px;
+    height: 90px;
+    margin: -45px; }
+    .circle-container > *:nth-of-type(1) {
+      transform: rotate(0deg) translate(150px) rotate(0deg); }
+    .circle-container > *:nth-of-type(2) {
+      transform: rotate(45deg) translate(150px) rotate(-45deg); }
+    .circle-container > *:nth-of-type(3) {
+      transform: rotate(90deg) translate(150px) rotate(-90deg); }
+    .circle-container > *:nth-of-type(4) {
+      transform: rotate(135deg) translate(150px) rotate(-135deg); }
+    .circle-container > *:nth-of-type(5) {
+      transform: rotate(180deg) translate(150px) rotate(-180deg); }
+    .circle-container > *:nth-of-type(6) {
+      transform: rotate(225deg) translate(150px) rotate(-225deg); }
+    .circle-container > *:nth-of-type(7) {
+      transform: rotate(270deg) translate(150px) rotate(-270deg); }
+    .circle-container > *:nth-of-type(8) {
+      transform: rotate(315deg) translate(150px) rotate(-315deg); }
+  .circle-container div.ui-snare {
+    display: block;
+    max-width: 100%;
+    height: 90px;
+    border-radius: 50%;
+    background-color: #fff858;
+    border: solid 5px tomato; }
+    .circle-container div.ui-snare:hover, .circle-container div.ui-snare:active {
+      filter: grayscale(0); }
+  .circle-container div.ui-snare.active {
+    filter: grayscale(50%); }

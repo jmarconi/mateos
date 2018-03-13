@@ -1,3 +1,10 @@
+var RemoteApi = require("live-remote-api").RemoteApi;
+
+
+RemoteApi.onOpen(function() {
+    window.addEventListener("load", metronome.init);
+})
+
 var audioContext = null;
 // the canvas element
 var canvas;
@@ -6,7 +13,8 @@ var canvasContext;
 // The Web Worker used to fire timer messages
 var timerWorker = null;
 
-console.log("algo");
+
+
 var metronome = {
     // Are we currently playing?
     isPlaying: false,
@@ -27,6 +35,8 @@ var metronome = {
     last16thNoteDrawn: -1,
     // the notes that have been put into the web audio, and may or may not have played yet. {note, time}
     notesInQueue: [],
+
+
 
     nextNote: function () {
         //console.log("next note " + this.current16thNote);
@@ -57,6 +67,19 @@ var metronome = {
         if (beatNumber % 2) {
             $(".ui-snare").removeClass("active");
             $('.ui-snare[beat=' + Math.round(beatNumber / 2) + ']').addClass("active");
+
+            RemoteApi.create("live_set tracks 1 clip_slots 0", function (err, api) {
+                // api.call('fire');
+            });
+
+        }
+
+        if (beatNumber % 4) {
+            $(".ui-snare").removeClass("active");
+            $('.ui-snare[beat=' + Math.round(beatNumber / 2) + ']').addClass("active");
+             RemoteApi.create("live_set tracks 1 clip_slots 0", function (err, api) {
+                 api.call('stop');
+             });
 
         }
 
@@ -140,7 +163,9 @@ var metronome = {
         // spec-compliant, and work on Chrome, Safari and Firefox.
         audioContext = new AudioContext();
         // // if we wanted to load audio files, etc., this is where we should do it.
-
+        console.log("init");
+        var playButton = document.createElement('div');
+        $(playButton).addClass('play').click(metronome.play).text("play").appendTo($("body"));
 
 
         // window.onorientationchange = metronome.resetCanvas;
@@ -157,6 +182,8 @@ var metronome = {
             }
         };
         timerWorker.postMessage({"interval": this.lookahead});
+
+
     }
 };
 
@@ -172,4 +199,4 @@ window.requestAnimFrame = (function () {
         };
 })();
 
-window.addEventListener("load", metronome.init);
+
