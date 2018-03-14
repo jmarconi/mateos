@@ -22,7 +22,7 @@ gulp.task("compilescss", function () {
 });
 
 gulp.task("browserify", function () {
-    return browserify()
+    return browserify({ transform: ['babelify'] })
         .add(glob.sync("./js/**/*.js"))
         .bundle()
         .on("error", function (e) {

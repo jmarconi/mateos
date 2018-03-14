@@ -1,4 +1,10 @@
 var RemoteApi = require("live-remote-api").RemoteApi;
+//var MateosUi = require('./MateosUi');
+import {jQuery} from 'jquery';
+import { MateosUi } from './MateosUi';
+
+window.MateosUi = MateosUi;
+console.log(MateosUi);
 
 
 RemoteApi.onOpen(function () {
@@ -18,7 +24,7 @@ var metronome = {
     // Are we currently playing?
     isPlaying: false,
     // What note is currently last scheduled?
-    current16thNote: null,
+    current16thNote: 1,
     // tempo (in beats per minute)
     tempo: 120.0,
     // How frequently to call scheduling function  (in milliseconds)
@@ -45,16 +51,14 @@ var metronome = {
         // Add beat length to last beat time
         this.nextNoteTime += 0.25 * secondsPerBeat;
 
-        this.current16thNote++;    // Advance the beat number, wrap to zero
+        // Advance the beat number, wrap to one
+        this.current16thNote++;
         if (this.current16thNote > 16) {
-
             this.compass++;
             if (this.compass > 4) {
                 this.compass = 1;
             }
-
-            this.current16thNote = 0;
-
+            this.current16thNote = 1;
         }
     },
 
@@ -131,24 +135,32 @@ var metronome = {
     play: function () {
         this.isPlaying = !this.isPlaying;
         if (this.isPlaying) { // start playing
-            this.current16thNote = 0;
-            timerWorker.postMessage("start");
-            RemoteApi.create("live_set", function (err, api) {
-                //api.get("current_song_time",function(val){console.log(val)} );
-                api.call("start_playing");
-            });
-            return "stop";
+            return metronome.doPlay();
         } else {
-            timerWorker.postMessage("stop");
-            this.current16thNote = 0;
-            this.compass = 1;
-            RemoteApi.create("live_set", function (err, api) {
-                // console.log(api);
-                api.call("stop_playing");
-                api.set("current_song_time",0);
-            });
-            return "play";
+            return metronome.doStop();
         }
+    },
+
+    doPlay: function () {
+        timerWorker.postMessage("start");
+        RemoteApi.create("live_set", function (err, api) {
+            //api.get("current_song_time",function(val){console.log(val)} );
+            api.call("start_playing");
+        });
+
+        return true;
+    },
+    //on stop we reset tempo on client and live
+    doStop: function () {
+        timerWorker.postMessage("stop");
+        this.current16thNote = 1;
+        this.compass = 1;
+        RemoteApi.create("live_set", function (err, api) {
+            api.call("stop_playing");
+            api.set("current_song_time", 0);
+        });
+
+        return false;
     },
     /*
         resetCanvas: function (e) {
@@ -160,33 +172,23 @@ var metronome = {
         },
     */
     draw: function () {
-        var currentNote = this.last16thNoteDrawn;
+        var currentNote = metronome.last16thNoteDrawn;
         //var currentTime = this.audioContext.currentTime;
-
         while (metronome.notesInQueue.length && metronome.notesInQueue[0].time < this.currentTime) {
             currentNote = this.notesInQueue[0].note;
             this.notesInQueue.splice(0, 1);   // remove note from queue
         }
-
         // We only need to draw if the note has moved.
-        if (this.last16thNoteDrawn != currentNote) {
-
-
-            // var x = Math.floor( canvas.width / 18 );
-            // canvasContext.clearRect(0,0,canvas.width, canvas.height);
-            // for (var i=0; i<16; i++) {
-            // canvasContext.fillStyle = ( currentNote == i ) ?
-            // ((currentNote%4 === 0)?"red":"blue") : "black";
-            // canvasContext.fillRect( x * (i+1), x, x/2, x/2 );
-            // }
-            this.last16thNoteDrawn = currentNote;
+        if (metronome.last16thNoteDrawn != currentNote) {
+            console.log("when? hwat?");
+            metronome.last16thNoteDrawn = currentNote;
         }
-
         // set up to draw again
         requestAnimFrame(metronome.draw);
     },
 
     init: function () {
+        MateosUi.init();
         // var container = document.createElement( 'div' );
         //
         // container.className = "container";
@@ -242,3 +244,4 @@ window.requestAnimFrame = (function () {
 })();
 
 
+window.metronome = metronome;
