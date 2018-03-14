@@ -53,7 +53,7 @@ var metronome = {
                 this.compass = 1;
             }
 
-            this.current16thNote = 1;
+            this.current16thNote = 0;
 
         }
     },
@@ -80,31 +80,31 @@ var metronome = {
 
             $('.ui-tempo[beat=' + uiStep + ']').addClass("active");
 
-            if($( ".ui-kick.selected[beat=" + uiStep + "]" ).length){
+            if ($(".ui-kick.selected[beat=" + uiStep + "]").length) {
                 RemoteApi.create("live_set tracks 1 clip_slots 0", function (err, api) {
-                   api.call('fire');
+                    api.call('fire');
                 });
-            }else{
+            } else {
                 RemoteApi.create("live_set tracks 1 clip_slots 0", function (err, api) {
                     api.call('stop');
                 });
             }
 
-            if($( ".ui-snare.selected[beat=" + uiStep + "]" ).length){
+            if ($(".ui-snare.selected[beat=" + uiStep + "]").length) {
                 RemoteApi.create("live_set tracks 2 clip_slots 0", function (err, api) {
                     api.call('fire');
                 });
-            }else{
+            } else {
                 RemoteApi.create("live_set tracks 2 clip_slots 0", function (err, api) {
                     api.call('stop');
                 });
             }
 
-            if($( ".ui-hihat.selected[beat=" + uiStep + "]" ).length){
+            if ($(".ui-hihat.selected[beat=" + uiStep + "]").length) {
                 RemoteApi.create("live_set tracks 3 clip_slots 0", function (err, api) {
                     api.call('fire');
                 });
-            }else{
+            } else {
                 RemoteApi.create("live_set tracks 3 clip_slots 0", function (err, api) {
                     api.call('stop');
                 });
@@ -133,11 +133,20 @@ var metronome = {
         if (this.isPlaying) { // start playing
             this.current16thNote = 0;
             timerWorker.postMessage("start");
-
+            RemoteApi.create("live_set", function (err, api) {
+                //api.get("current_song_time",function(val){console.log(val)} );
+                api.call("start_playing");
+            });
             return "stop";
         } else {
             timerWorker.postMessage("stop");
-
+            this.current16thNote = 0;
+            this.compass = 1;
+            RemoteApi.create("live_set", function (err, api) {
+                // console.log(api);
+                api.call("stop_playing");
+                api.set("current_song_time",0);
+            });
             return "play";
         }
     },
