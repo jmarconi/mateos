@@ -1,11 +1,8 @@
 "use strict"
-// import {jQuery} from 'jquery';
 const jQuery = require("jquery");
+// const MateosBGCanvas = require("./MateosBGCanvas.js");
 
 class MateosUi {
-    static mapa() {
-       console.log("mapa");
-    }
     static init() {
         jQuery("#kick-container .ui-kick").click(function (event) {
             jQuery(this).toggleClass("selected");
@@ -33,8 +30,33 @@ class MateosUi {
                 jQuery(this).attr("selected", "selected")
             }
         });
+        this.setTempo("1");
+        // window.MateosBgCanvas.execute();
+    }
+
+    static createPlayButton(play) {
+        const playButton = document.createElement('div');
+        jQuery(playButton)
+            .addClass('play-button')
+            .click(play).text("play")
+            .appendTo($("body"));
+    }
+
+    static play() {
+        jQuery(".play-button").text("stop");
+    }
+
+    static stop() {
+        jQuery(".play-button").text("play");
+        this.setTempo("1");
+    }
+
+    static setTempo(beat) {
+        $(".ui-tempo").removeClass("active");
+        $('.ui-tempo[beat=' + beat + ']').addClass("active");
     }
 }
+
 
 export {MateosUi};
 

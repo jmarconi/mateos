@@ -8,14 +8,14 @@
     max-width: 100%;
     height: 30px;
     border-radius: 50%;
-    background-color: cadetblue;
+   // background-color: cadetblue;
     //filter: grayscale(100%);
 
     //transition: .15s;
 
     &:hover,
     &:active {
-      filter: grayscale(0);
+      //filter: grayscale(0);
     }
   }
 
@@ -33,13 +33,13 @@
     height: 60px;
     border-radius: 50%;
     background-color: #fff858;
-    filter: grayscale(75%);
+    filter: grayscale(60%);
 
     //transition: .15s;
 
     &:hover,
     &:active {
-      filter: grayscale(0);
+      //filter: grayscale(0);
     }
 
   }
@@ -64,7 +64,7 @@
 
     &:hover,
     &:active {
-      filter: grayscale(0);
+      //filter: grayscale(0);
     }
 
   }
@@ -72,25 +72,30 @@
     filter: grayscale(0);
   }
 
-
 }
 
 #hihat-container {
   @include on-circle($item-count: 8, $circle-size: 450px, $item-size: 135px);
 
-  div.ui-hihat{
+  div.ui-hihat {
+    padding-top: -10px;
     display: block;
     max-width: 100%;
-    height: 135px;
-    border-radius: 50%;
-    background-color: orange;
-    filter: grayscale(75%);
+    //height: 135px;
+    //border-radius: 50%;
+
+    filter: grayscale(60%);
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 0 67.5px 100px 67.5px;
+    border-color: transparent transparent #faff31 transparent;
 
     //transition: .15s;
 
     &:hover,
     &:active {
-      filter: grayscale(0);
+      //filter: grayscale(0);
     }
 
   }
@@ -98,9 +103,7 @@
     filter: grayscale(0);
   }
 
-
 }
-
 
 .game-container {
   position: absolute;
@@ -108,4 +111,24 @@
   top: 50%;
   -webkit-transform: translate(-50%, -50%);
   transform: translate(-50%, -50%);
+}
+
+.play-button {
+  border: 2px solid #333333;
+  border-radius: 3px;
+  width: 10%;
+  height: 30px;
+  text-align: center;
+  padding-top: 10px;
+  &:hover {
+    background-color: #737d7a;
+  }
+}
+
+#canvas-background {
+  //position: fixed;
+  width: 100%;
+  height: 100%;
+  display: block;
+  -webkit-transform: translateZ(0)
 }

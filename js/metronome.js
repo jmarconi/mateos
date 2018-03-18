@@ -1,21 +1,15 @@
 var RemoteApi = require("live-remote-api").RemoteApi;
-//var MateosUi = require('./MateosUi');
 import {jQuery} from 'jquery';
-import { MateosUi } from './MateosUi';
+import {MateosUi} from './MateosUi';
 
 window.MateosUi = MateosUi;
-console.log(MateosUi);
 
 
 RemoteApi.onOpen(function () {
     window.addEventListener("load", metronome.init);
-})
+});
 
 var audioContext = null;
-// the canvas element
-var canvas;
-// canvasContext is the canvas' context 2D
-var canvasContext;
 // The Web Worker used to fire timer messages
 var timerWorker = null;
 
@@ -26,7 +20,7 @@ var metronome = {
     // What note is currently last scheduled?
     current16thNote: 1,
     // tempo (in beats per minute)
-    tempo: 120.0,
+    tempo: 123.0,
     // How frequently to call scheduling function  (in milliseconds)
     lookahead: 25.0,
     // How far ahead to schedule audio (sec),
@@ -61,66 +55,64 @@ var metronome = {
             this.current16thNote = 1;
         }
     },
+    getUiStep: function () {
+        return ((this.compass - 1) * 2 + Math.round(beatNumber / 8));
+    },
+    executeKickBeat: function (Beat) {
+
+        if ($(".ui-kick.selected[beat=" + Beat + "]").length) {
+            //fire clip
+            RemoteApi.create("live_set tracks 1 clip_slots 1", function (err, api) {
+                api.call('fire');
+            });
+        } else {
+            //fire empty clip
+            RemoteApi.create("live_set tracks 1 clip_slots 0", function (err, api) {
+                api.call('fire');
+            });
+        }
+    },
+
+    fireClips: function () {
+        const Beat = this.getUiStep();
+        this.executeKickBeat(Beat);
+
+        if ($(".ui-snare.selected[beat=" + Beat + "]").length) {
+            RemoteApi.create("live_set tracks 2 clip_slots 0", function (err, api) {
+                api.call('fire');
+            });
+        } else {
+            RemoteApi.create("live_set tracks 2 clip_slots 0", function (err, api) {
+                api.call('stop');
+            });
+        }
+
+        if ($(".ui-hihat.selected[beat=" + Beat + "]").length) {
+            RemoteApi.create("live_set tracks 3 clip_slots 0", function (err, api) {
+                api.call('fire');
+            });
+        } else {
+            RemoteApi.create("live_set tracks 3 clip_slots 0", function (err, api) {
+                api.call('stop');
+            });
+        }
+    },
 
     scheduleNote: function (beatNumber, time) {
         // push the note on the queue, even if we're not playing.
-        this.notesInQueue.push({note: beatNumber, time: time});
+        metronome.notesInQueue.push({note: beatNumber, time: time});
         //
         // if ((this.noteResolution == 1) && (beatNumber % 2))
         //     return; // we're not playing non-8th 16th notes
         // if ((this.noteResolution == 2) && (beatNumber % 4))
         //     return; // we're not playing non-quarter 8th notes
-
-
-        //$("#beat-counter").text("beat number: " + beatNumber);
-
-
         if ((beatNumber % 8) == 0) {
-            $(".ui-tempo").removeClass("active");
+            const uiStep = this.getUiStep();
+            //Update Ui temmpo display
+            MateosUi.setTempo(uiStep);
+            this.fireClips();
 
-            const uiStep = (this.compass - 1) * 2 + Math.round(beatNumber / 8);
-
-            console.log(uiStep);
-
-            $('.ui-tempo[beat=' + uiStep + ']').addClass("active");
-
-            if ($(".ui-kick.selected[beat=" + uiStep + "]").length) {
-                RemoteApi.create("live_set tracks 1 clip_slots 0", function (err, api) {
-                    api.call('fire');
-                });
-            } else {
-                RemoteApi.create("live_set tracks 1 clip_slots 0", function (err, api) {
-                    api.call('stop');
-                });
-            }
-
-            if ($(".ui-snare.selected[beat=" + uiStep + "]").length) {
-                RemoteApi.create("live_set tracks 2 clip_slots 0", function (err, api) {
-                    api.call('fire');
-                });
-            } else {
-                RemoteApi.create("live_set tracks 2 clip_slots 0", function (err, api) {
-                    api.call('stop');
-                });
-            }
-
-            if ($(".ui-hihat.selected[beat=" + uiStep + "]").length) {
-                RemoteApi.create("live_set tracks 3 clip_slots 0", function (err, api) {
-                    api.call('fire');
-                });
-            } else {
-                RemoteApi.create("live_set tracks 3 clip_slots 0", function (err, api) {
-                    api.call('stop');
-                });
-            }
         }
-
-
-        //  RemoteApi.create("live_set tracks 1 clip_slots 0", function (err, api) {
-        //      api.call('stop');
-        //  });
-
-
     },
 
     scheduler: function () {
@@ -147,19 +139,21 @@ var metronome = {
             //api.get("current_song_time",function(val){console.log(val)} );
             api.call("start_playing");
         });
-
+        MateosUi.play();
         return true;
     },
     //on stop we reset tempo on client and live
     doStop: function () {
         timerWorker.postMessage("stop");
-        this.current16thNote = 1;
-        this.compass = 1;
+        metronome.current16thNote = 1;
+        metronome.compass = 1;
         RemoteApi.create("live_set", function (err, api) {
             api.call("stop_playing");
+            api.call("stop_all_clips");
             api.set("current_song_time", 0);
         });
-
+        MateosUi.stop();
+        metronome.notesInQueue = [];
         return false;
     },
     /*
@@ -174,9 +168,9 @@ var metronome = {
     draw: function () {
         var currentNote = metronome.last16thNoteDrawn;
         //var currentTime = this.audioContext.currentTime;
-        while (metronome.notesInQueue.length && metronome.notesInQueue[0].time < this.currentTime) {
-            currentNote = this.notesInQueue[0].note;
-            this.notesInQueue.splice(0, 1);   // remove note from queue
+        while (metronome.notesInQueue.length && metronome.notesInQueue[0].time < metronome.currentTime) {
+            currentNote = metronome.notesInQueue[0].note;
+            metronome.notesInQueue.splice(0, 1);   // remove note from queue
         }
         // We only need to draw if the note has moved.
         if (metronome.last16thNoteDrawn != currentNote) {
@@ -189,6 +183,7 @@ var metronome = {
 
     init: function () {
         MateosUi.init();
+
         // var container = document.createElement( 'div' );
         //
         // container.className = "container";
@@ -208,8 +203,7 @@ var metronome = {
         audioContext = new AudioContext();
         // // if we wanted to load audio files, etc., this is where we should do it.
         console.log("init");
-        var playButton = document.createElement('div');
-        $(playButton).addClass('play').click(metronome.play).text("play").appendTo($("body"));
+        MateosUi.createPlayButton(metronome.play)
 
 
         // window.onorientationchange = metronome.resetCanvas;
@@ -226,9 +220,6 @@ var metronome = {
             }
         };
         timerWorker.postMessage({"interval": this.lookahead});
-
-
-    }
 };
 
 // First, let's shim the requestAnimationFrame API, with a setTimeout fallback
