@@ -35,7 +35,7 @@ var MateosBgCanvas = {
         let ps2 = 3.3;
 
 
-        const canvas = document.getElementById("canvas-background");
+        let canvas = document.getElementById("canvas-background");
         canvas.width = 640;
         canvas.height = 320;
         let cv = canvas.getContext('2d');

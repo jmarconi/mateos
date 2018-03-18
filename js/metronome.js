@@ -203,7 +203,7 @@ var metronome = {
         audioContext = new AudioContext();
         // // if we wanted to load audio files, etc., this is where we should do it.
         console.log("init");
-        MateosUi.createPlayButton(metronome.play)
+        MateosUi.createPlayButton(metronome.play);
 
 
         // window.onorientationchange = metronome.resetCanvas;
@@ -220,6 +220,7 @@ var metronome = {
             }
         };
         timerWorker.postMessage({"interval": this.lookahead});
+    }
 };
 
 // First, let's shim the requestAnimationFrame API, with a setTimeout fallback
