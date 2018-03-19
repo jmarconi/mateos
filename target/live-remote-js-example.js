@@ -166,6 +166,11 @@ var MateosUi = function () {
             $(".ui-tempo").removeClass("active");
             $('.ui-tempo[beat=' + beat + ']').addClass("active");
         }
+    }, {
+        key: "setBeatNumber",
+        value: function setBeatNumber(beatNumber) {
+            jQuery(".beat-counter").html(beatNumber);
+        }
     }]);
 
     return MateosUi;
@@ -218,6 +223,7 @@ var RemoteApi = require("live-remote-api").RemoteApi;
 window.MateosUi = _MateosUi.MateosUi;
 
 RemoteApi.onOpen(function () {
+    window.RemoteApi = RemoteApi;
     window.addEventListener("load", metronome.init);
 });
 
@@ -248,6 +254,7 @@ var metronome = {
     compass: 1,
 
     nextNote: function nextNote() {
+        console.log("next note");
         //console.log("next note " + this.current16thNote);
         // Advance current note and time by a 16th note...
         // Notice this picks up the CURRENT tempo value to calculate beat length.
@@ -265,8 +272,11 @@ var metronome = {
             this.current16thNote = 1;
         }
     },
-    getUiStep: function getUiStep() {
-        return (this.compass - 1) * 2 + Math.round(beatNumber / 8);
+    getUiStep: function getUiStep(beatNumber) {
+        var beat = (this.compass - 1) * 2 + Math.round(beatNumber / 8);
+        console.log(beat);
+
+        return beat;
     },
     executeKickBeat: function executeKickBeat(Beat) {
 
@@ -283,32 +293,51 @@ var metronome = {
         }
     },
 
-    fireClips: function fireClips() {
-        var Beat = this.getUiStep();
-        this.executeKickBeat(Beat);
+    executeSnareBeat: function executeSnareBeat(Beat) {
 
         if ($(".ui-snare.selected[beat=" + Beat + "]").length) {
-            RemoteApi.create("live_set tracks 2 clip_slots 0", function (err, api) {
+            //fire clip
+            RemoteApi.create("live_set tracks 2 clip_slots 1", function (err, api) {
                 api.call('fire');
             });
         } else {
+            //fire empty clip
             RemoteApi.create("live_set tracks 2 clip_slots 0", function (err, api) {
-                api.call('stop');
-            });
-        }
-
-        if ($(".ui-hihat.selected[beat=" + Beat + "]").length) {
-            RemoteApi.create("live_set tracks 3 clip_slots 0", function (err, api) {
                 api.call('fire');
-            });
-        } else {
-            RemoteApi.create("live_set tracks 3 clip_slots 0", function (err, api) {
-                api.call('stop');
             });
         }
     },
 
+    executeHiHatBeat: function executeHiHatBeat(Beat) {
+
+        if ($(".ui-hihat.selected[beat=" + Beat + "]").length) {
+            //fire clip
+            RemoteApi.create("live_set tracks 3 clip_slots 1", function (err, api) {
+                api.call('fire');
+            });
+        } else {
+            //fire empty clip
+            RemoteApi.create("live_set tracks 3 clip_slots 0", function (err, api) {
+                api.call('fire');
+            });
+        }
+    },
+
+    fireClips: function fireClips(beatNumber) {
+        var Beat = this.getUiStep(beatNumber);
+        //we check one bar ahead
+        _MateosUi.MateosUi.setTempo(Beat);
+        Beat++;
+        if (Beat > 8) {
+            Beat = 1;
+        }
+        this.executeKickBeat(Beat);
+        this.executeSnareBeat(Beat);
+        this.executeHiHatBeat(Beat);
+    },
+
     scheduleNote: function scheduleNote(beatNumber, time) {
+        console.log("schedule note");
         // push the note on the queue, even if we're not playing.
         metronome.notesInQueue.push({ note: beatNumber, time: time });
         //
@@ -317,15 +346,14 @@ var metronome = {
         // if ((this.noteResolution == 2) && (beatNumber % 4))
         //     return; // we're not playing non-quarter 8th notes
         if (beatNumber % 8 == 0) {
-            var uiStep = this.getUiStep();
-            //Update Ui temmpo display
-            _MateosUi.MateosUi.setTempo(uiStep);
-            this.fireClips();
+            this.fireClips(beatNumber);
         }
     },
 
     scheduler: function scheduler() {
         // while there are notes that will need to play before the next interval, schedule them and advance the pointer.
+        console.log("scheduler");
+        console.log(audioContext.currentTime);
         while (this.nextNoteTime < audioContext.currentTime + this.scheduleAheadTime) {
             // console.log("schedule note beat: " + this.current16thNote + " time: " + this.nextNoteTime);
             this.scheduleNote(this.current16thNote, this.nextNoteTime);

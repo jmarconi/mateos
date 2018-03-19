@@ -55,6 +55,10 @@ class MateosUi {
         $(".ui-tempo").removeClass("active");
         $('.ui-tempo[beat=' + beat + ']').addClass("active");
     }
+
+    static setBeatNumber(beatNumber){
+        jQuery(".beat-counter").html(beatNumber);
+    }
 }
 
 
