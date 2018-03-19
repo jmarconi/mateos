@@ -1,12 +1,12 @@
 @import 'on-circle';
 
 .circle-container {
-  @include on-circle($item-count: 8, $circle-size: 100px, $item-size: 30px);
+  @include on-circle($item-count: 8, $circle-size: 250px, $item-size: 90px);
 
   div.ui-tempo {
     display: block;
     max-width: 100%;
-    height: 30px;
+    height: 90px;
     border-radius: 50%;
     // background-color: cadetblue;
     //filter: grayscale(100%);
@@ -16,6 +16,7 @@
     &:hover,
     &:active {
       //filter: grayscale(0);
+      rotate: 45deg;
     }
   }
 
@@ -25,16 +26,16 @@
 }
 
 #kick-container {
-  @include on-circle($item-count: 8, $circle-size: 200px, $item-size: 60px);
+  @include on-circle($item-count: 8, $circle-size: 250px, $item-size: 90px);
 
   div.ui-kick {
     display: block;
+    width: 90px;
+    height: 90px;
     max-width: 100%;
-    height: 60px;
-    border-radius: 50%;
-    background-color: #fff858;
     filter: grayscale(60%);
-
+    background-image:url(buttons/kick-normal.png);
+    background-size: 100%;
     //transition: .15s;
 
     &:hover,
@@ -50,14 +51,15 @@
 }
 
 #snare-container {
-  @include on-circle($item-count: 8, $circle-size: 300px, $item-size: 90px);
+  @include on-circle($item-count: 8, $circle-size: 450px, $item-size: 90px);
 
   div.ui-snare {
     display: block;
+    width: 80px;
+    height: 80px;
     max-width: 100%;
-    height: 90px;
-    border-radius: 50%;
-    background-color: green;
+    background-image:url(buttons/snare-normal.png);
+    background-size: 100%;
     filter: grayscale(75%);
 
     //transition: .15s;
@@ -75,22 +77,21 @@
 }
 
 #hihat-container {
-  @include on-circle($item-count: 8, $circle-size: 450px, $item-size: 135px);
+  @include on-circle($item-count: 8, $circle-size: 700px, $item-size: 90px);
 
   div.ui-hihat {
     padding-top: -10px;
     display: block;
+    width: 90px;
     max-width: 100%;
     //height: 135px;
     //border-radius: 50%;
-
+    background-image:url(buttons/hihat-normal.png);
+    background-size: 100%;
     filter: grayscale(60%);
-    width: 0;
-    height: 0;
-    border-style: solid;
-    border-width: 0 67.5px 100px 67.5px;
-    border-color: transparent transparent #faff31 transparent;
-
+    width: 90px;
+    height: 90px;
+  
     //transition: .15s;
 
     &:hover,
@@ -111,6 +112,8 @@
   top: 50%;
   -webkit-transform: translate(-50%, -50%);
   transform: translate(-50%, -50%);
+
+ 
 }
 
 .play-button {
@@ -131,6 +134,7 @@
   height: 100%;
   display: block;
   -webkit-transform: translateZ(0)
+
 }
 
 #bg-video {
@@ -140,4 +144,20 @@
   min-width: 100%;
   min-height: 100%;
   z-index: -1;
+}
+
+.circulobg {
+	background-image:url(buttons/background-circle.png);
+    background-size: 100%;
+    min-height: 500px;
+    min-width: 500px;
+}
+
+.infokeys {
+	background-image: url(buttons/key-indicators.png);
+    background-size: 100%;
+    height: 115px;
+    width: 346px;
+    float: right;
+    margin-top: 200px;
 }
