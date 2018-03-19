@@ -22,7 +22,7 @@ var metronome = {
     // What note is currently last scheduled?
     current16thNote: 1,
     // tempo (in beats per minute)
-    tempo: 120.0,
+    tempo: 90.0,
     // How frequently to call scheduling function  (in milliseconds)
     lookahead: 25.0,
     // How far ahead to schedule audio (sec),
@@ -40,7 +40,7 @@ var metronome = {
 
 
     nextNote: function () {
-        console.log("next note");
+        // console.log("next note");
         //console.log("next note " + this.current16thNote);
         // Advance current note and time by a 16th note...
         // Notice this picks up the CURRENT tempo value to calculate beat length.
@@ -66,7 +66,7 @@ var metronome = {
 
 
     scheduleNote: function (beatNumber, time) {
-        console.log("schedule note");
+        // console.log("schedule note");
         // push the note on the queue, even if we're not playing.
         metronome.notesInQueue.push({note: beatNumber, time: time});
         //
@@ -82,8 +82,8 @@ var metronome = {
     scheduler: function () {
         // while there are notes that will need to play before the next interval, schedule them and advance the pointer.
         console.log("nextNoteTime " + metronome.nextNoteTime);
-        while ( (metronome.nextNoteTime) < ( audioContext.currentTime + metronome.scheduleAheadTime )) {
-           //console.log("addingnote");
+        while ((metronome.nextNoteTime) < (audioContext.currentTime + metronome.scheduleAheadTime)) {
+            //console.log("addingnote");
             metronome.scheduleNote(metronome.current16thNote, metronome.nextNoteTime);
             metronome.nextNote();
         }
@@ -138,18 +138,23 @@ var metronome = {
     },
 
     executeSnareBeat: function (Beat) {
+        $(".ui-snare").each(function () {
+            let beat = parseInt($(this).attr("beat"));
+            let channel = beat + 4;
+            if ($(this).attr("selected")) {
+                RemoteApi.create("live_set tracks " + channel + "  clip_slots 1", function (err, api) {
+                    api.call('fire');
+                })
+            } else {
+                RemoteApi.create("live_set tracks " + channel + "  clip_slots 0", function (err, api) {
+                    api.call('fire');
+                });
+            }
+        })
 
-        if ($(".ui-snare.selected[beat=" + Beat + "]").length) {
-            //fire clip
-            RemoteApi.create("live_set tracks 2 clip_slots 1", function (err, api) {
-                api.call('fire');
-            });
-        } else {
-            //fire empty clip
-            RemoteApi.create("live_set tracks 2 clip_slots 0", function (err, api) {
-                api.call('fire');
-            });
-        }
+
+
+
     },
 
     executeHiHatBeat: function (Beat) {
@@ -170,14 +175,14 @@ var metronome = {
     fireClips: function (beatNumber) {
         let Beat = metronome.getUiStep(beatNumber);
         //we check one bar ahead
-        MateosUi.setTempo(Beat);
         Beat++;
         if (Beat > 8) {
             Beat = 1;
         }
-        metronome.executeKickBeat(Beat);
+        MateosUi.setTempo(Beat);
+        // metronome.executeKickBeat(Beat);
         metronome.executeSnareBeat(Beat);
-        metronome.executeHiHatBeat(Beat);
+        // metronome.executeHiHatBeat(Beat);
 
     },
 
@@ -190,7 +195,7 @@ var metronome = {
         }
         // We only need to draw if the note has moved.
         if (metronome.last16thNoteDrawn != currentNote) {
-            console.log("when? hwat?");
+            // console.log("when? hwat?");
             metronome.last16thNoteDrawn = currentNote;
         }
         // set up to draw again
