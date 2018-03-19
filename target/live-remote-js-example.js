@@ -163,6 +163,7 @@ var MateosUi = function () {
     }, {
         key: "setTempo",
         value: function setTempo(beat) {
+            console.log("set temp " + beat);
             $(".ui-tempo").removeClass("active");
             $('.ui-tempo[beat=' + beat + ']').addClass("active");
         }
@@ -352,12 +353,14 @@ var metronome = {
 
     scheduler: function scheduler() {
         // while there are notes that will need to play before the next interval, schedule them and advance the pointer.
-        console.log("scheduler");
-        console.log(audioContext.currentTime);
-        while (this.nextNoteTime < audioContext.currentTime + this.scheduleAheadTime) {
-            // console.log("schedule note beat: " + this.current16thNote + " time: " + this.nextNoteTime);
-            this.scheduleNote(this.current16thNote, this.nextNoteTime);
-            this.nextNote();
+        console.log("scheduleAheadTime " + metronome.scheduleAheadTime);
+        console.log("nextNoteTime " + metronome.nextNoteTime);
+        var currentAdjustedTime = audioContext.currentTime + metronome.scheduleAheadTime;
+        console.log("menor q " + currentAdjustedTime);
+        while (metronome.nextNoteTime < currentAdjustedTime) {
+            //console.log("schedule note beat: " + this.current16thNote + " time: " + this.nextNoteTime);
+            metronome.scheduleNote(metronome.current16thNote, metronome.nextNoteTime);
+            metronome.nextNote();
         }
     },
 

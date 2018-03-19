@@ -8,7 +8,7 @@
     max-width: 100%;
     height: 30px;
     border-radius: 50%;
-   // background-color: cadetblue;
+    // background-color: cadetblue;
     //filter: grayscale(100%);
 
     //transition: .15s;
@@ -131,4 +131,13 @@
   height: 100%;
   display: block;
   -webkit-transform: translateZ(0)
+}
+
+#bg-video {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  min-width: 100%;
+  min-height: 100%;
+  z-index: -1;
 }
