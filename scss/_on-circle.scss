@@ -5,34 +5,50 @@
 /// @param {Length} $circle-size - Large circle size
 /// @param {Length} $item-size - Single item size
 @mixin on-circle($item-count, $circle-size, $item-size) {
-    position: relative;
-    //width:  $circle-size;
-    //height: $circle-size;
-    //padding: 0;
-   // border-radius: 50%;
-    //list-style: none;
+  position: relative;
+  //width:  $circle-size;
+  //height: $circle-size;
+  //padding: 0;
+  // border-radius: 50%;
+  //list-style: none;
 
-    > * {
-        display: block;
-        position: absolute;
-        top:  50%;
-        left: 50%;
-        width:  $item-size;
-        height: $item-size;
-        margin: -($item-size / 2);
+  > * {
+    display: block;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: $item-size;
+    height: $item-size;
+    margin: -($item-size / 2);
 
-        $angle: (360 / $item-count);
-        $rot: 0;
-
+    $angle: (360 / $item-count);
+    $rot: 0;
+    $fixer: 0;
     @for $i from 1 through $item-count {
-    &:nth-of-type(#{$i}) {
-        transform:
-                rotate($rot * 1deg)
-                translate($circle-size / 2)
-                rotate($rot * -1deg);
+      &:nth-of-type(#{$i}) {
+
+        @if ($i == 1 or $i == 5) {
+          $fixer: 270;
+        }
+        @if ($i == 2 or $i == 6) {
+          $fixer: 265;
+        }
+
+        @if ($i == 3 or $i == 7) {
+          $fixer: 35;
+        }
+
+        @if ($i == 4 or $i == 8) {
+          $fixer: 273;
+        }
+
+        transform: rotate($rot * 1deg) translate($circle-size / 2) rotate($fixer * -1deg);
+
+      }
+
+      $rot: $rot + $angle;
     }
 
-    $rot: $rot + $angle;
-    }
+  }
 }
-}
+

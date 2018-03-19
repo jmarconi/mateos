@@ -9,21 +9,21 @@
     height: 30px;
     margin: -15px; }
     .circle-container > *:nth-of-type(1) {
-      transform: rotate(0deg) translate(50px) rotate(0deg); }
+      transform: rotate(0deg) translate(50px) rotate(-270deg); }
     .circle-container > *:nth-of-type(2) {
-      transform: rotate(45deg) translate(50px) rotate(-45deg); }
+      transform: rotate(45deg) translate(50px) rotate(-265deg); }
     .circle-container > *:nth-of-type(3) {
-      transform: rotate(90deg) translate(50px) rotate(-90deg); }
+      transform: rotate(90deg) translate(50px) rotate(-35deg); }
     .circle-container > *:nth-of-type(4) {
-      transform: rotate(135deg) translate(50px) rotate(-135deg); }
+      transform: rotate(135deg) translate(50px) rotate(-273deg); }
     .circle-container > *:nth-of-type(5) {
-      transform: rotate(180deg) translate(50px) rotate(-180deg); }
+      transform: rotate(180deg) translate(50px) rotate(-270deg); }
     .circle-container > *:nth-of-type(6) {
-      transform: rotate(225deg) translate(50px) rotate(-225deg); }
+      transform: rotate(225deg) translate(50px) rotate(-265deg); }
     .circle-container > *:nth-of-type(7) {
-      transform: rotate(270deg) translate(50px) rotate(-270deg); }
+      transform: rotate(270deg) translate(50px) rotate(-35deg); }
     .circle-container > *:nth-of-type(8) {
-      transform: rotate(315deg) translate(50px) rotate(-315deg); }
+      transform: rotate(315deg) translate(50px) rotate(-273deg); }
   .circle-container div.ui-tempo {
     display: block;
     max-width: 100%;
@@ -43,21 +43,21 @@
     height: 60px;
     margin: -30px; }
     #kick-container > *:nth-of-type(1) {
-      transform: rotate(0deg) translate(100px) rotate(0deg); }
+      transform: rotate(0deg) translate(100px) rotate(-270deg); }
     #kick-container > *:nth-of-type(2) {
-      transform: rotate(45deg) translate(100px) rotate(-45deg); }
+      transform: rotate(45deg) translate(100px) rotate(-265deg); }
     #kick-container > *:nth-of-type(3) {
-      transform: rotate(90deg) translate(100px) rotate(-90deg); }
+      transform: rotate(90deg) translate(100px) rotate(-35deg); }
     #kick-container > *:nth-of-type(4) {
-      transform: rotate(135deg) translate(100px) rotate(-135deg); }
+      transform: rotate(135deg) translate(100px) rotate(-273deg); }
     #kick-container > *:nth-of-type(5) {
-      transform: rotate(180deg) translate(100px) rotate(-180deg); }
+      transform: rotate(180deg) translate(100px) rotate(-270deg); }
     #kick-container > *:nth-of-type(6) {
-      transform: rotate(225deg) translate(100px) rotate(-225deg); }
+      transform: rotate(225deg) translate(100px) rotate(-265deg); }
     #kick-container > *:nth-of-type(7) {
-      transform: rotate(270deg) translate(100px) rotate(-270deg); }
+      transform: rotate(270deg) translate(100px) rotate(-35deg); }
     #kick-container > *:nth-of-type(8) {
-      transform: rotate(315deg) translate(100px) rotate(-315deg); }
+      transform: rotate(315deg) translate(100px) rotate(-273deg); }
   #kick-container div.ui-kick {
     display: block;
     max-width: 100%;
@@ -79,21 +79,21 @@
     height: 90px;
     margin: -45px; }
     #snare-container > *:nth-of-type(1) {
-      transform: rotate(0deg) translate(150px) rotate(0deg); }
+      transform: rotate(0deg) translate(150px) rotate(-270deg); }
     #snare-container > *:nth-of-type(2) {
-      transform: rotate(45deg) translate(150px) rotate(-45deg); }
+      transform: rotate(45deg) translate(150px) rotate(-265deg); }
     #snare-container > *:nth-of-type(3) {
-      transform: rotate(90deg) translate(150px) rotate(-90deg); }
+      transform: rotate(90deg) translate(150px) rotate(-35deg); }
     #snare-container > *:nth-of-type(4) {
-      transform: rotate(135deg) translate(150px) rotate(-135deg); }
+      transform: rotate(135deg) translate(150px) rotate(-273deg); }
     #snare-container > *:nth-of-type(5) {
-      transform: rotate(180deg) translate(150px) rotate(-180deg); }
+      transform: rotate(180deg) translate(150px) rotate(-270deg); }
     #snare-container > *:nth-of-type(6) {
-      transform: rotate(225deg) translate(150px) rotate(-225deg); }
+      transform: rotate(225deg) translate(150px) rotate(-265deg); }
     #snare-container > *:nth-of-type(7) {
-      transform: rotate(270deg) translate(150px) rotate(-270deg); }
+      transform: rotate(270deg) translate(150px) rotate(-35deg); }
     #snare-container > *:nth-of-type(8) {
-      transform: rotate(315deg) translate(150px) rotate(-315deg); }
+      transform: rotate(315deg) translate(150px) rotate(-273deg); }
   #snare-container div.ui-snare {
     display: block;
     max-width: 100%;
@@ -115,21 +115,21 @@
     height: 135px;
     margin: -67.5px; }
     #hihat-container > *:nth-of-type(1) {
-      transform: rotate(0deg) translate(225px) rotate(0deg); }
+      transform: rotate(0deg) translate(225px) rotate(-270deg); }
     #hihat-container > *:nth-of-type(2) {
-      transform: rotate(45deg) translate(225px) rotate(-45deg); }
+      transform: rotate(45deg) translate(225px) rotate(-265deg); }
     #hihat-container > *:nth-of-type(3) {
-      transform: rotate(90deg) translate(225px) rotate(-90deg); }
+      transform: rotate(90deg) translate(225px) rotate(-35deg); }
     #hihat-container > *:nth-of-type(4) {
-      transform: rotate(135deg) translate(225px) rotate(-135deg); }
+      transform: rotate(135deg) translate(225px) rotate(-273deg); }
     #hihat-container > *:nth-of-type(5) {
-      transform: rotate(180deg) translate(225px) rotate(-180deg); }
+      transform: rotate(180deg) translate(225px) rotate(-270deg); }
     #hihat-container > *:nth-of-type(6) {
-      transform: rotate(225deg) translate(225px) rotate(-225deg); }
+      transform: rotate(225deg) translate(225px) rotate(-265deg); }
     #hihat-container > *:nth-of-type(7) {
-      transform: rotate(270deg) translate(225px) rotate(-270deg); }
+      transform: rotate(270deg) translate(225px) rotate(-35deg); }
     #hihat-container > *:nth-of-type(8) {
-      transform: rotate(315deg) translate(225px) rotate(-315deg); }
+      transform: rotate(315deg) translate(225px) rotate(-273deg); }
   #hihat-container div.ui-hihat {
     padding-top: -10px;
     display: block;

@@ -229,6 +229,7 @@ RemoteApi.onOpen(function () {
 });
 
 var audioContext = null;
+
 // The Web Worker used to fire timer messages
 var timerWorker = null;
 
@@ -238,7 +239,7 @@ var metronome = {
     // What note is currently last scheduled?
     current16thNote: 1,
     // tempo (in beats per minute)
-    tempo: 123.0,
+    tempo: 120.0,
     // How frequently to call scheduling function  (in milliseconds)
     lookahead: 25.0,
     // How far ahead to schedule audio (sec),
@@ -353,12 +354,13 @@ var metronome = {
 
     scheduler: function scheduler() {
         // while there are notes that will need to play before the next interval, schedule them and advance the pointer.
-        console.log("scheduleAheadTime " + metronome.scheduleAheadTime);
+        //console.log("scheduleAheadTime " + metronome.scheduleAheadTime);
         console.log("nextNoteTime " + metronome.nextNoteTime);
-        var currentAdjustedTime = audioContext.currentTime + metronome.scheduleAheadTime;
-        console.log("menor q " + currentAdjustedTime);
-        while (metronome.nextNoteTime < currentAdjustedTime) {
-            //console.log("schedule note beat: " + this.current16thNote + " time: " + this.nextNoteTime);
+
+        //console.log("menor q " + (audioContext.currentTime + metronome.scheduleAheadTime));
+
+        while (metronome.nextNoteTime < audioContext.currentTime + metronome.scheduleAheadTime) {
+            console.log("schedule note beat: " + metronome.current16thNote + " time: " + metronome.nextNoteTime);
             metronome.scheduleNote(metronome.current16thNote, metronome.nextNoteTime);
             metronome.nextNote();
         }
@@ -442,6 +444,7 @@ var metronome = {
         // TO WORK ON CURRENT CHROME!!  But this means our code can be properly
         // spec-compliant, and work on Chrome, Safari and Firefox.
         audioContext = new AudioContext();
+
         // // if we wanted to load audio files, etc., this is where we should do it.
         console.log("init");
         _MateosUi.MateosUi.createPlayButton(metronome.play);
@@ -471,6 +474,7 @@ window.requestAnimFrame = function () {
 }();
 
 window.metronome = metronome;
+window.audioContext = audioContext;
 
 },{"./MateosUi":2,"jquery":5,"live-remote-api":6}],5:[function(require,module,exports){
 /*eslint-disable no-unused-vars*/
