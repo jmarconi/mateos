@@ -262,24 +262,82 @@ var metronome = {
         // Notice this picks up the CURRENT tempo value to calculate beat length.
         var secondsPerBeat = 60.0 / this.tempo;
         // Add beat length to last beat time
-        this.nextNoteTime += 0.25 * secondsPerBeat;
+        metronome.nextNoteTime += 0.25 * secondsPerBeat;
 
         // Advance the beat number, wrap to one
-        this.current16thNote++;
-        if (this.current16thNote > 16) {
-            this.compass++;
-            if (this.compass > 4) {
-                this.compass = 1;
+        metronome.current16thNote++;
+        if (metronome.current16thNote > 16) {
+            metronome.compass++;
+            if (metronome.compass > 4) {
+                metronome.compass = 1;
             }
-            this.current16thNote = 1;
+            metronome.current16thNote = 1;
         }
     },
     getUiStep: function getUiStep(beatNumber) {
-        var beat = (this.compass - 1) * 2 + Math.round(beatNumber / 8);
-        console.log(beat);
+        var beat = (metronome.compass - 1) * 2 + Math.round(beatNumber / 8);
 
         return beat;
     },
+
+    scheduleNote: function scheduleNote(beatNumber, time) {
+        console.log("schedule note");
+        // push the note on the queue, even if we're not playing.
+        metronome.notesInQueue.push({ note: beatNumber, time: time });
+        //
+        // if ((metronome.noteResolution == 1) && (beatNumber % 2))
+        //     return; // we're not playing non-8th 16th notes
+        // if ((metronome.noteResolution == 2) && (beatNumber % 4))
+        //     return; // we're not playing non-quarter 8th notes
+        if (beatNumber % 8 == 0) {
+            metronome.fireClips(beatNumber);
+        }
+    },
+
+    scheduler: function scheduler() {
+        // while there are notes that will need to play before the next interval, schedule them and advance the pointer.
+        console.log("nextNoteTime " + metronome.nextNoteTime);
+        while (metronome.nextNoteTime < audioContext.currentTime + metronome.scheduleAheadTime) {
+            //console.log("addingnote");
+            metronome.scheduleNote(metronome.current16thNote, metronome.nextNoteTime);
+            metronome.nextNote();
+        }
+    },
+
+    play: function play() {
+        metronome.isPlaying = !metronome.isPlaying;
+        if (metronome.isPlaying) {
+            // start playing
+            return metronome.doPlay();
+        } else {
+            return metronome.doStop();
+        }
+    },
+
+    doPlay: function doPlay() {
+        timerWorker.postMessage("start");
+        RemoteApi.create("live_set", function (err, api) {
+            //api.get("current_song_time",function(val){console.log(val)} );
+            api.call("start_playing");
+        });
+        _MateosUi.MateosUi.play();
+        return true;
+    },
+    //on stop we reset tempo on client and live
+    doStop: function doStop() {
+        timerWorker.postMessage("stop");
+        metronome.current16thNote = 1;
+        metronome.compass = 1;
+        RemoteApi.create("live_set", function (err, api) {
+            api.call("stop_playing");
+            api.call("stop_all_clips");
+            api.set("current_song_time", 0);
+        });
+        _MateosUi.MateosUi.stop();
+        metronome.notesInQueue = [];
+        return false;
+    },
+
     executeKickBeat: function executeKickBeat(Beat) {
 
         if ($(".ui-kick.selected[beat=" + Beat + "]").length) {
@@ -326,88 +384,18 @@ var metronome = {
     },
 
     fireClips: function fireClips(beatNumber) {
-        var Beat = this.getUiStep(beatNumber);
+        var Beat = metronome.getUiStep(beatNumber);
         //we check one bar ahead
         _MateosUi.MateosUi.setTempo(Beat);
         Beat++;
         if (Beat > 8) {
             Beat = 1;
         }
-        this.executeKickBeat(Beat);
-        this.executeSnareBeat(Beat);
-        this.executeHiHatBeat(Beat);
+        metronome.executeKickBeat(Beat);
+        metronome.executeSnareBeat(Beat);
+        metronome.executeHiHatBeat(Beat);
     },
 
-    scheduleNote: function scheduleNote(beatNumber, time) {
-        console.log("schedule note");
-        // push the note on the queue, even if we're not playing.
-        metronome.notesInQueue.push({ note: beatNumber, time: time });
-        //
-        // if ((this.noteResolution == 1) && (beatNumber % 2))
-        //     return; // we're not playing non-8th 16th notes
-        // if ((this.noteResolution == 2) && (beatNumber % 4))
-        //     return; // we're not playing non-quarter 8th notes
-        if (beatNumber % 8 == 0) {
-            this.fireClips(beatNumber);
-        }
-    },
-
-    scheduler: function scheduler() {
-        // while there are notes that will need to play before the next interval, schedule them and advance the pointer.
-        //console.log("scheduleAheadTime " + metronome.scheduleAheadTime);
-        console.log("nextNoteTime " + metronome.nextNoteTime);
-
-        //console.log("menor q " + (audioContext.currentTime + metronome.scheduleAheadTime));
-
-        while (metronome.nextNoteTime < audioContext.currentTime + metronome.scheduleAheadTime) {
-            console.log("schedule note beat: " + metronome.current16thNote + " time: " + metronome.nextNoteTime);
-            metronome.scheduleNote(metronome.current16thNote, metronome.nextNoteTime);
-            metronome.nextNote();
-        }
-    },
-
-    play: function play() {
-        this.isPlaying = !this.isPlaying;
-        if (this.isPlaying) {
-            // start playing
-            return metronome.doPlay();
-        } else {
-            return metronome.doStop();
-        }
-    },
-
-    doPlay: function doPlay() {
-        timerWorker.postMessage("start");
-        RemoteApi.create("live_set", function (err, api) {
-            //api.get("current_song_time",function(val){console.log(val)} );
-            api.call("start_playing");
-        });
-        _MateosUi.MateosUi.play();
-        return true;
-    },
-    //on stop we reset tempo on client and live
-    doStop: function doStop() {
-        timerWorker.postMessage("stop");
-        metronome.current16thNote = 1;
-        metronome.compass = 1;
-        RemoteApi.create("live_set", function (err, api) {
-            api.call("stop_playing");
-            api.call("stop_all_clips");
-            api.set("current_song_time", 0);
-        });
-        _MateosUi.MateosUi.stop();
-        metronome.notesInQueue = [];
-        return false;
-    },
-    /*
-        resetCanvas: function (e) {
-            // resize the canvas - but remember - this clears the canvas too.
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            //make sure we scroll to the top left.
-            window.scrollTo(0, 0);
-        },
-    */
     draw: function draw() {
         var currentNote = metronome.last16thNoteDrawn;
         //var currentTime = this.audioContext.currentTime;
@@ -462,7 +450,7 @@ var metronome = {
                 console.log("message: " + e.data);
             }
         };
-        timerWorker.postMessage({ "interval": this.lookahead });
+        timerWorker.postMessage({ "interval": metronome.lookahead });
     }
 };
 
@@ -474,7 +462,6 @@ window.requestAnimFrame = function () {
 }();
 
 window.metronome = metronome;
-window.audioContext = audioContext;
 
 },{"./MateosUi":2,"jquery":5,"live-remote-api":6}],5:[function(require,module,exports){
 /*eslint-disable no-unused-vars*/
