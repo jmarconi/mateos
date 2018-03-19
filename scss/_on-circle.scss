@@ -27,20 +27,8 @@
     @for $i from 1 through $item-count {
       &:nth-of-type(#{$i}) {
 
-        @if ($i == 1 or $i == 5) {
-          $fixer: 270;
-        }
-        @if ($i == 2 or $i == 6) {
-          $fixer: 265;
-        }
-
-        @if ($i == 3 or $i == 7) {
-          $fixer: 35;
-        }
-
-        @if ($i == 4 or $i == 8) {
-          $fixer: 273;
-        }
+        $fixer: 270;
+           
 
         transform: rotate($rot * 1deg) translate($circle-size / 2) rotate($fixer * -1deg);
 
