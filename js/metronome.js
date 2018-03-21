@@ -22,7 +22,7 @@ var metronome = {
     // What note is currently last scheduled?
     current16thNote: 1,
     // tempo (in beats per minute)
-    tempo: 90.0,
+    tempo: 96.0,
     // How frequently to call scheduling function  (in milliseconds)
     lookahead: 25.0,
     // How far ahead to schedule audio (sec),
@@ -50,6 +50,8 @@ var metronome = {
 
         // Advance the beat number, wrap to one
         metronome.current16thNote++;
+
+
         if (metronome.current16thNote > 16) {
             metronome.compass++;
             if (metronome.compass > 4) {
@@ -59,29 +61,38 @@ var metronome = {
         }
     },
     getUiStep: function (beatNumber) {
-        let beat = (metronome.compass - 1) * 2 + Math.round(beatNumber / 8);
+        let beat = Math.round(beatNumber / 2);
 
         return beat;
     },
 
 
     scheduleNote: function (beatNumber, time) {
-        // console.log("schedule note");
-        // push the note on the queue, even if we're not playing.
         metronome.notesInQueue.push({note: beatNumber, time: time});
-        //
-        // if ((metronome.noteResolution == 1) && (beatNumber % 2))
-        //     return; // we're not playing non-8th 16th notes
-        // if ((metronome.noteResolution == 2) && (beatNumber % 4))
-        //     return; // we're not playing non-quarter 8th notes
-        if ((beatNumber % 8) == 0) {
-            metronome.fireClips(beatNumber);
+        if ((beatNumber % 2) == 0) {
+            var Beat = metronome.getUiStep(beatNumber);
+            MateosUi.setTempo(Beat);
         }
+        if (beatNumber == 1) {
+            if (metronome.compass == 1) {
+                MateosUi.showInstruction("Look!")
+                MateosUi.showPattern("snare",{});
+                metronome.fireClips();
+            } else if (metronome.compass == 2) {
+                MateosUi.hidePattern("snare");
+                MateosUi.showInstruction("Repeat")
+            }else if (metronome.compass == 3){
+                metronome.fireClips();
+                MateosUi.showInstruction("Validate")
+            }
+        }
+
+
     },
 
     scheduler: function () {
         // while there are notes that will need to play before the next interval, schedule them and advance the pointer.
-        console.log("nextNoteTime " + metronome.nextNoteTime);
+        //console.log("nextNoteTime " + metronome.nextNoteTime);
         while ((metronome.nextNoteTime) < (audioContext.currentTime + metronome.scheduleAheadTime)) {
             //console.log("addingnote");
             metronome.scheduleNote(metronome.current16thNote, metronome.nextNoteTime);
@@ -90,6 +101,7 @@ var metronome = {
     },
 
     play: function () {
+        $("#overlay").hide();
         metronome.isPlaying = !metronome.isPlaying;
         if (metronome.isPlaying) { // start playing
             return metronome.doPlay();
@@ -123,7 +135,6 @@ var metronome = {
     },
 
     executeKickBeat: function (Beat) {
-
         if ($(".ui-kick.selected[beat=" + Beat + "]").length) {
             //fire clip
             RemoteApi.create("live_set tracks 1 clip_slots 1", function (err, api) {
@@ -137,7 +148,7 @@ var metronome = {
         }
     },
 
-    executeSnareBeat: function (Beat) {
+    executeSnareBeat: function () {
         $(".ui-snare").each(function () {
             let beat = parseInt($(this).attr("beat"));
             let channel = beat + 4;
@@ -151,14 +162,9 @@ var metronome = {
                 });
             }
         })
-
-
-
-
     },
 
     executeHiHatBeat: function (Beat) {
-
         if ($(".ui-hihat.selected[beat=" + Beat + "]").length) {
             //fire clip
             RemoteApi.create("live_set tracks 3 clip_slots 1", function (err, api) {
@@ -172,16 +178,9 @@ var metronome = {
         }
     },
 
-    fireClips: function (beatNumber) {
-        let Beat = metronome.getUiStep(beatNumber);
-        //we check one bar ahead
-        Beat++;
-        if (Beat > 8) {
-            Beat = 1;
-        }
-        MateosUi.setTempo(Beat);
+    fireClips: function () {
         // metronome.executeKickBeat(Beat);
-        metronome.executeSnareBeat(Beat);
+        metronome.executeSnareBeat();
         // metronome.executeHiHatBeat(Beat);
 
     },
@@ -205,19 +204,6 @@ var metronome = {
 
     init: function () {
         MateosUi.init();
-
-        // var container = document.createElement( 'div' );
-        //
-        // container.className = "container";
-        // canvas = document.createElement( 'canvas' );
-        // canvasContext = canvas.getContext( '2d' );
-        // canvas.width = window.innerWidth;
-        // canvas.height = window.innerHeight;
-        // document.body.appendChild( container );
-        // container.appendChild(canvas);
-        // canvasContext.strokeStyle = "#ffffff";
-        // canvasContext.lineWidth = 2;
-
         // NOTE: THIS RELIES ON THE MONKEYPATCH LIBRARY BEING LOADED FROM
         // Http://cwilso.github.io/AudioContext-MonkeyPatch/AudioContextMonkeyPatch.js
         // TO WORK ON CURRENT CHROME!!  But this means our code can be properly
@@ -243,6 +229,7 @@ var metronome = {
             }
         };
         timerWorker.postMessage({"interval": metronome.lookahead});
+        metronome.doStop()
     }
 };
 

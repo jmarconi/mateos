@@ -104,6 +104,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var jQuery = require("jquery");
+
 // const MateosBGCanvas = require("./MateosBGCanvas.js");
 
 var MateosUi = function () {
@@ -147,7 +148,7 @@ var MateosUi = function () {
         key: "createPlayButton",
         value: function createPlayButton(play) {
             var playButton = document.createElement('div');
-            jQuery(playButton).addClass('play-button').click(play).text("play").appendTo($("body"));
+            jQuery(playButton).addClass('play-button').click(play).text("play").appendTo($("#overlay .message, body"));
         }
     }, {
         key: "play",
@@ -172,6 +173,39 @@ var MateosUi = function () {
         value: function setBeatNumber(beatNumber) {
             jQuery(".beat-counter").html(beatNumber);
         }
+    }, {
+        key: "showPattern",
+        value: function showPattern(element, pattern) {
+            pattern = {
+                1: false,
+                2: false,
+                3: true,
+                4: false,
+                5: false,
+                6: false,
+                7: true,
+                8: false
+            };
+            $(".ui-" + element).each(function () {
+                var beat = parseInt($(this).attr("beat"));
+
+                if (pattern[beat]) {
+                    $(this).attr("selected", "selected").addClass("selected");
+                } else {
+                    $(this).attr("selected", null).removeClass("selected");
+                }
+            });
+        }
+    }, {
+        key: "hidePattern",
+        value: function hidePattern(element) {
+            $(".ui-" + element).attr("selected", null).removeClass("selected");
+        }
+    }, {
+        key: "showInstruction",
+        value: function showInstruction(text) {
+            $("#instructions").html(text);
+        }
     }]);
 
     return MateosUi;
@@ -180,38 +214,41 @@ var MateosUi = function () {
 exports.MateosUi = MateosUi;
 
 },{"jquery":5}],3:[function(require,module,exports){
+// "use strict";
+//
+// var RemoteApi = require("live-remote-api").RemoteApi;
+// var params = require("live-remote-params").params ;
+// var $ = require("jquery");
+//
+// RemoteApi.onOpen(function() {
+// 	RemoteApi.create("live_set master_track mixer_device volume", function(err, api) {
+// 		var slider = new params.Slider()
+// 		slider.api(api)
+// 		$(document.body).append(slider.div())
+// 	})
+// 	RemoteApi.create("live_set tracks 1 mixer_device track_activator", function(err, api) {
+// 		var t = new params.Toggle()
+// 		t.api(api)
+// 		$(document.body).append(t.div())
+// 	})
+//
+// 	RemoteApi.create("live_set tracks 2 mixer_device track_activator", function(err, api) {
+// 		var t = new params.Toggle()
+// 		t.api(api)
+// 		$(document.body).append(t.div())
+// 	})
+//
+// 	RemoteApi.create("live_set tracks 3 mixer_device track_activator", function(err, api) {
+// 		var t = new params.Toggle()
+// 		t.api(api)
+// 		$(document.body).append(t.div())
+// 	})
+//
+//
+// })
 "use strict";
 
-var RemoteApi = require("live-remote-api").RemoteApi;
-var params = require("live-remote-params").params;
-var $ = require("jquery");
-
-RemoteApi.onOpen(function () {
-	RemoteApi.create("live_set master_track mixer_device volume", function (err, api) {
-		var slider = new params.Slider();
-		slider.api(api);
-		$(document.body).append(slider.div());
-	});
-	RemoteApi.create("live_set tracks 1 mixer_device track_activator", function (err, api) {
-		var t = new params.Toggle();
-		t.api(api);
-		$(document.body).append(t.div());
-	});
-
-	RemoteApi.create("live_set tracks 2 mixer_device track_activator", function (err, api) {
-		var t = new params.Toggle();
-		t.api(api);
-		$(document.body).append(t.div());
-	});
-
-	RemoteApi.create("live_set tracks 3 mixer_device track_activator", function (err, api) {
-		var t = new params.Toggle();
-		t.api(api);
-		$(document.body).append(t.div());
-	});
-});
-
-},{"jquery":5,"live-remote-api":6,"live-remote-params":17}],4:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 'use strict';
 
 var _jquery = require('jquery');
@@ -239,7 +276,7 @@ var metronome = {
     // What note is currently last scheduled?
     current16thNote: 1,
     // tempo (in beats per minute)
-    tempo: 90.0,
+    tempo: 96.0,
     // How frequently to call scheduling function  (in milliseconds)
     lookahead: 25.0,
     // How far ahead to schedule audio (sec),
@@ -266,6 +303,7 @@ var metronome = {
 
         // Advance the beat number, wrap to one
         metronome.current16thNote++;
+
         if (metronome.current16thNote > 16) {
             metronome.compass++;
             if (metronome.compass > 4) {
@@ -275,28 +313,35 @@ var metronome = {
         }
     },
     getUiStep: function getUiStep(beatNumber) {
-        var beat = (metronome.compass - 1) * 2 + Math.round(beatNumber / 8);
+        var beat = Math.round(beatNumber / 2);
 
         return beat;
     },
 
     scheduleNote: function scheduleNote(beatNumber, time) {
-        // console.log("schedule note");
-        // push the note on the queue, even if we're not playing.
         metronome.notesInQueue.push({ note: beatNumber, time: time });
-        //
-        // if ((metronome.noteResolution == 1) && (beatNumber % 2))
-        //     return; // we're not playing non-8th 16th notes
-        // if ((metronome.noteResolution == 2) && (beatNumber % 4))
-        //     return; // we're not playing non-quarter 8th notes
-        if (beatNumber % 8 == 0) {
-            metronome.fireClips(beatNumber);
+        if (beatNumber % 2 == 0) {
+            var Beat = metronome.getUiStep(beatNumber);
+            _MateosUi.MateosUi.setTempo(Beat);
+        }
+        if (beatNumber == 1) {
+            if (metronome.compass == 1) {
+                _MateosUi.MateosUi.showInstruction("Look!");
+                _MateosUi.MateosUi.showPattern("snare", {});
+                metronome.fireClips();
+            } else if (metronome.compass == 2) {
+                _MateosUi.MateosUi.hidePattern("snare");
+                _MateosUi.MateosUi.showInstruction("Repeat");
+            } else if (metronome.compass == 3) {
+                metronome.fireClips();
+                _MateosUi.MateosUi.showInstruction("Validate");
+            }
         }
     },
 
     scheduler: function scheduler() {
         // while there are notes that will need to play before the next interval, schedule them and advance the pointer.
-        console.log("nextNoteTime " + metronome.nextNoteTime);
+        //console.log("nextNoteTime " + metronome.nextNoteTime);
         while (metronome.nextNoteTime < audioContext.currentTime + metronome.scheduleAheadTime) {
             //console.log("addingnote");
             metronome.scheduleNote(metronome.current16thNote, metronome.nextNoteTime);
@@ -305,6 +350,7 @@ var metronome = {
     },
 
     play: function play() {
+        $("#overlay").hide();
         metronome.isPlaying = !metronome.isPlaying;
         if (metronome.isPlaying) {
             // start playing
@@ -339,7 +385,6 @@ var metronome = {
     },
 
     executeKickBeat: function executeKickBeat(Beat) {
-
         if ($(".ui-kick.selected[beat=" + Beat + "]").length) {
             //fire clip
             RemoteApi.create("live_set tracks 1 clip_slots 1", function (err, api) {
@@ -353,7 +398,7 @@ var metronome = {
         }
     },
 
-    executeSnareBeat: function executeSnareBeat(Beat) {
+    executeSnareBeat: function executeSnareBeat() {
         $(".ui-snare").each(function () {
             var beat = parseInt($(this).attr("beat"));
             var channel = beat + 4;
@@ -370,7 +415,6 @@ var metronome = {
     },
 
     executeHiHatBeat: function executeHiHatBeat(Beat) {
-
         if ($(".ui-hihat.selected[beat=" + Beat + "]").length) {
             //fire clip
             RemoteApi.create("live_set tracks 3 clip_slots 1", function (err, api) {
@@ -384,16 +428,9 @@ var metronome = {
         }
     },
 
-    fireClips: function fireClips(beatNumber) {
-        var Beat = metronome.getUiStep(beatNumber);
-        //we check one bar ahead
-        Beat++;
-        if (Beat > 8) {
-            Beat = 1;
-        }
-        _MateosUi.MateosUi.setTempo(Beat);
+    fireClips: function fireClips() {
         // metronome.executeKickBeat(Beat);
-        metronome.executeSnareBeat(Beat);
+        metronome.executeSnareBeat();
         // metronome.executeHiHatBeat(Beat);
     },
 
@@ -415,19 +452,6 @@ var metronome = {
 
     init: function init() {
         _MateosUi.MateosUi.init();
-
-        // var container = document.createElement( 'div' );
-        //
-        // container.className = "container";
-        // canvas = document.createElement( 'canvas' );
-        // canvasContext = canvas.getContext( '2d' );
-        // canvas.width = window.innerWidth;
-        // canvas.height = window.innerHeight;
-        // document.body.appendChild( container );
-        // container.appendChild(canvas);
-        // canvasContext.strokeStyle = "#ffffff";
-        // canvasContext.lineWidth = 2;
-
         // NOTE: THIS RELIES ON THE MONKEYPATCH LIBRARY BEING LOADED FROM
         // Http://cwilso.github.io/AudioContext-MonkeyPatch/AudioContextMonkeyPatch.js
         // TO WORK ON CURRENT CHROME!!  But this means our code can be properly
@@ -452,6 +476,7 @@ var metronome = {
             }
         };
         timerWorker.postMessage({ "interval": metronome.lookahead });
+        metronome.doStop();
     }
 };
 
@@ -10720,495 +10745,7 @@ function callListener(l, val, err_mess) {
     }
 }
 
-},{"string-split-keep":18}],8:[function(require,module,exports){
-"use strict";
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
-var AbstractParam_1 = require("./AbstractParam");
-var $ = require("jquery");
-var touch = "ontouchstart" in document;
-var AbstractKnob = (function (_super) {
-    __extends(AbstractKnob, _super);
-    function AbstractKnob() {
-        _super.call(this);
-        this._radius = 40;
-        var self = this;
-        this._div.addClass("knob").append($('<svg viewBox="0 0 100 100">'
-            + '<path class="black circle"/><path class="orange circle"/><path class="black line"></svg>'));
-        this._div.find(".black.circle").attr("d", describeArc(50, 50, 40, AbstractKnob._minDegrees, -AbstractKnob._minDegrees));
-        this._ocircle = this._div.find(".orange.circle");
-        this._needle = this._div.find(".black.line");
-    }
-    AbstractKnob.prototype.onDown = function (e) {
-        this._step = this._range / -100;
-        this._lastPos = e.pageY;
-        this._div.get(0).requestPointerLock();
-    };
-    AbstractKnob.prototype.onUp = function (e) {
-        document.exitPointerLock();
-    };
-    AbstractKnob.prototype.onMove = function (e) {
-        var movement = touch ? e.pageY - this._lastPos : e.movementY;
-        if (movement == 0)
-            return;
-        this._lastPos = e.pageY;
-        var v = (this._currentVal + movement * this._step);
-        v = Math.min(this._max, Math.max(this._min, v));
-        if (v !== this._currentVal && v !== this._sentVal) {
-            this.onValue(v);
-            this._sentVal = v;
-        }
-    };
-    AbstractKnob.prototype.setValue = function (val) {
-        if (this._needleRadius === undefined)
-            this._needleRadius = this._radius + parseFloat(this._ocircle.css("stroke-width")) / 2.0;
-        this._currentVal = val;
-        var v01 = (val - this._min) / this._range;
-        var vdeg = AbstractKnob._minDegrees + v01 * AbstractKnob._degRange;
-        var ft = this.fromTo(vdeg);
-        this._ocircle.attr("d", describeArc(50, 50, 40, ft.f, ft.t));
-        var nc = polarToCartesian(50, 50, this._needleRadius, vdeg);
-        this._needle.attr("d", "M 50 50 L " + nc.x + " " + nc.y);
-    };
-    AbstractKnob._minDegrees = -147;
-    AbstractKnob._degRange = -2 * AbstractKnob._minDegrees;
-    return AbstractKnob;
-}(AbstractParam_1.AbstractParam));
-exports.AbstractKnob = AbstractKnob;
-function describeArc(x, y, radius, startAngle, endAngle) {
-    var start = polarToCartesian(x, y, radius, endAngle);
-    var end = polarToCartesian(x, y, radius, startAngle);
-    var arcSweep = endAngle - startAngle <= 180 ? "0" : "1";
-    var d = [
-        "M", start.x, start.y,
-        "A", radius, radius, 0, arcSweep, 0, end.x, end.y
-    ].join(" ");
-    return d;
-}
-function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
-    var angleInRadians = (angleInDegrees - 90) * Math.PI / 180.0;
-    return {
-        x: centerX + (radius * Math.cos(angleInRadians)),
-        y: centerY + (radius * Math.sin(angleInRadians))
-    };
-}
-
-},{"./AbstractParam":9,"jquery":5}],9:[function(require,module,exports){
-"use strict";
-var $ = require("jquery");
-var globl_1 = require("./globl");
-var AbstractParam = (function () {
-    function AbstractParam() {
-        this._min = -1;
-        this._default = NaN;
-        this._max = 1;
-        this._range = 2;
-        this._div = $('<div class="param">');
-        var self = this;
-        if ("ontouchstart" in document) {
-            self._div.get(0).ontouchstart = function (de) {
-                document.ontouchend = function (ue) {
-                    document.ontouchmove = undefined;
-                    document.ontouchend = undefined;
-                    globl_1.globl.select(self);
-                    self.onUp(ue.touches[0]);
-                };
-                document.ontouchmove = function (me) { return self.onMove(me.touches[0]); };
-                self.onDown(de.touches[0]);
-            };
-        }
-        else {
-            self._div.get(0).onmousedown = function (de) {
-                document.onmouseup = function (ue) {
-                    document.onmousemove = undefined;
-                    document.onmouseup = undefined;
-                    globl_1.globl.select(self);
-                    self.onUp(ue);
-                };
-                document.onmousemove = function (me) { return self.onMove(me); };
-                self.onDown(de);
-            };
-        }
-    }
-    AbstractParam.prototype.onDown = function (e) { };
-    AbstractParam.prototype.onMove = function (e) { };
-    AbstractParam.prototype.onUp = function (e) { };
-    AbstractParam.prototype.setValue = function (val) { };
-    AbstractParam.prototype.api = function (api) {
-        if (api === undefined)
-            return this._api;
-        this._api = api;
-        var self = this;
-        if (api.info.type != "DeviceParameter")
-            throw "cannot control api of type " + api.info.type;
-        api.get("original_name", function (val) { return self._name = val; });
-        api.get("min", function (val) { return self.min(parseFloat(val)); });
-        api.get("max", function (val) { return self.max(parseFloat(val)); });
-        if (api.info.properties.indexOf("default_value float") != -1)
-            api.get("default_value", function (val) { return self.def(parseFloat(val)); });
-        api.observe("value", function (val) { return self.setValue(parseFloat(val)); });
-        self.onValue = function (val) { return api.set("value", val); };
-    };
-    AbstractParam.prototype.min = function (val) {
-        if (val === undefined)
-            return this._min;
-        this._min = val;
-        this._range = this._max - this._min;
-    };
-    AbstractParam.prototype.max = function (val) {
-        if (val === undefined)
-            return this._max;
-        this._max = val;
-        this._range = this._max - this._min;
-    };
-    AbstractParam.prototype.def = function (val) {
-        if (val === undefined)
-            return this._default;
-        this._default = val;
-    };
-    AbstractParam.prototype.div = function () { return this._div; };
-    return AbstractParam;
-}());
-exports.AbstractParam = AbstractParam;
-
-},{"./globl":16,"jquery":5}],10:[function(require,module,exports){
-"use strict";
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
-var AbstractParam_1 = require("./AbstractParam");
-var $ = require("jquery");
-var HSlider = (function (_super) {
-    __extends(HSlider, _super);
-    function HSlider() {
-        _super.call(this);
-        this._groove = $('<div class="groove">');
-        this._handle = $('<div class="handle">');
-        this._div.addClass("horiz slider").append(this._groove, this._handle);
-    }
-    HSlider.prototype.setVars = function () {
-        if (this._width === undefined) {
-            this._left = this._groove.offset().left;
-            this._width = this._groove.width();
-            this._right = this._left + this._width;
-        }
-    };
-    HSlider.prototype.onDown = function (e) {
-        this.setVars();
-        this.onMove(e);
-    };
-    HSlider.prototype.onMove = function (e) {
-        var x = e.pageX;
-        var v;
-        if (x <= this._left)
-            v = 0;
-        else if (x >= this._right)
-            v = 1;
-        else
-            v = (x - this._left) / this._width;
-        this.onValue(this._min + this._range * v);
-    };
-    HSlider.prototype.setValue = function (val) {
-        this.setVars();
-        var v = (val - this._min) / this._range;
-        var x = v * this._width;
-        this._handle.css("transform", "translateX(" + x + "px)");
-    };
-    return HSlider;
-}(AbstractParam_1.AbstractParam));
-exports.HSlider = HSlider;
-
-},{"./AbstractParam":9,"jquery":5}],11:[function(require,module,exports){
-"use strict";
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
-var AbstractKnob_1 = require("./AbstractKnob");
-var Knob = (function (_super) {
-    __extends(Knob, _super);
-    function Knob() {
-        _super.apply(this, arguments);
-    }
-    Knob.prototype.fromTo = function (vdeg) {
-        return {
-            f: AbstractKnob_1.AbstractKnob._minDegrees,
-            t: vdeg
-        };
-    };
-    return Knob;
-}(AbstractKnob_1.AbstractKnob));
-exports.Knob = Knob;
-
-},{"./AbstractKnob":8}],12:[function(require,module,exports){
-"use strict";
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
-var AbstractKnob_1 = require("./AbstractKnob");
-var PanKnob = (function (_super) {
-    __extends(PanKnob, _super);
-    function PanKnob() {
-        _super.apply(this, arguments);
-    }
-    PanKnob.prototype.fromTo = function (vdeg) {
-        return {
-            f: Math.min(0, vdeg),
-            t: Math.max(0, vdeg)
-        };
-    };
-    return PanKnob;
-}(AbstractKnob_1.AbstractKnob));
-exports.PanKnob = PanKnob;
-
-},{"./AbstractKnob":8}],13:[function(require,module,exports){
-"use strict";
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
-var AbstractParam_1 = require("./AbstractParam");
-var $ = require("jquery");
-var Slider = (function (_super) {
-    __extends(Slider, _super);
-    function Slider() {
-        _super.call(this);
-        this._groove = $('<div class="groove">');
-        this._handle = $('<div class="handle">');
-        this._div.addClass("slider").append(this._groove, this._handle);
-    }
-    Slider.prototype.setVars = function () {
-        if (this._height === undefined) {
-            this._top = this._groove.offset().top;
-            this._height = this._groove.height();
-            this._bottom = this._top + this._height;
-        }
-    };
-    Slider.prototype.onDown = function (e) {
-        this.setVars();
-        this.onMove(e);
-    };
-    Slider.prototype.onMove = function (e) {
-        var y = e.pageY;
-        var v;
-        if (y <= this._top)
-            v = 1;
-        else if (y >= this._bottom)
-            v = 0;
-        else
-            v = 1 - ((y - this._top) / this._height);
-        this.onValue(this._min + this._range * v);
-    };
-    Slider.prototype.setValue = function (val) {
-        this.setVars();
-        var v = (val - this._min) / this._range;
-        var y = (1 - v) * this._height;
-        this._handle.css("transform", "translateY(" + y + "px)");
-    };
-    return Slider;
-}(AbstractParam_1.AbstractParam));
-exports.Slider = Slider;
-
-},{"./AbstractParam":9,"jquery":5}],14:[function(require,module,exports){
-"use strict";
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
-var AbstractParam_1 = require("./AbstractParam");
-var Toggle = (function (_super) {
-    __extends(Toggle, _super);
-    function Toggle() {
-        _super.call(this);
-        this._div.addClass("toggle");
-    }
-    Toggle.prototype.onDown = function (e) {
-        this.onValue(this._div.hasClass("on") ? 0 : 1);
-    };
-    Toggle.prototype.setValue = function (val) {
-        if (val == 1)
-            this._div.addClass("on");
-        else
-            this._div.removeClass("on");
-    };
-    return Toggle;
-}(AbstractParam_1.AbstractParam));
-exports.Toggle = Toggle;
-
-},{"./AbstractParam":9}],15:[function(require,module,exports){
-"use strict";
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
-var AbstractParam_1 = require("./AbstractParam");
-var $ = require("jquery");
-var XYPad = (function (_super) {
-    __extends(XYPad, _super);
-    function XYPad() {
-        _super.call(this);
-        this._minY = -1;
-        this._maxY = 1;
-        this._rangeY = 2;
-        this._defaultY = NaN;
-        this._dot = $('<div class="dot">');
-        this._div.addClass("xypad").append(this._dot);
-    }
-    XYPad.prototype.apiY = function (apiY) {
-        if (apiY === undefined)
-            return this._apiY;
-        this._apiY = apiY;
-        var self = this;
-        if (apiY.info.type != "DeviceParameter")
-            throw "cannot control api of type " + apiY.info.type;
-        apiY.get("original_name", function (val) { return self._nameY = val; });
-        apiY.get("min", function (val) { return self.minY(parseFloat(val)); });
-        apiY.get("max", function (val) { return self.maxY(parseFloat(val)); });
-        if (apiY.info.properties.indexOf("default_value float") != -1)
-            apiY.get("default_value", function (val) { return self.defY(parseFloat(val)); });
-        apiY.observe("value", function (val) { return self.setValueY(parseFloat(val)); });
-        self.onValueY = function (val) { return apiY.set("value", val); };
-    };
-    XYPad.prototype.minY = function (val) {
-        if (val === undefined)
-            return this._minY;
-        this._minY = val;
-        this._rangeY = this._maxY - this._minY;
-    };
-    XYPad.prototype.maxY = function (val) {
-        if (val === undefined)
-            return this._maxY;
-        this._maxY = val;
-        this._rangeY = this._maxY - this._minY;
-    };
-    XYPad.prototype.defY = function (val) {
-        if (val === undefined)
-            return this._defaultY;
-        this._defaultY = val;
-    };
-    XYPad.prototype.onDown = function (e) {
-        this.setVars();
-        this.onMove(e);
-    };
-    XYPad.prototype.onMove = function (e) {
-        var x = e.pageX;
-        var v;
-        if (x <= this._left)
-            v = 0;
-        else if (x >= this._right)
-            v = 1;
-        else
-            v = (x - this._left) / this._width;
-        this.onValue(this._min + this._range * v);
-        var y = e.pageY;
-        if (y <= this._top)
-            v = 1;
-        else if (y >= this._bottom)
-            v = 0;
-        else
-            v = 1 - ((y - this._top) / this._height);
-        this.onValueY(this._minY + this._rangeY * v);
-    };
-    XYPad.prototype.setVars = function () {
-        if (this._width === undefined) {
-            this._left = this._div.offset().left;
-            this._width = this._div.width() - this._dot.width();
-            this._right = this._left + this._width;
-            this._top = this._div.offset().top;
-            this._height = this._div.height() - this._dot.height();
-            this._bottom = this._top + this._height;
-        }
-    };
-    XYPad.prototype.setValue = function (val) {
-        this.setVars();
-        var v = (val - this._min) / this._range;
-        var x = v * this._width;
-        this._dot.css("left", x + "px");
-    };
-    XYPad.prototype.setValueY = function (val) {
-        this.setVars();
-        var v = (val - this._minY) / this._rangeY;
-        var y = (1 - v) * this._height;
-        this._dot.css("top", y + "px");
-    };
-    return XYPad;
-}(AbstractParam_1.AbstractParam));
-exports.XYPad = XYPad;
-
-},{"./AbstractParam":9,"jquery":5}],16:[function(require,module,exports){
-"use strict";
-var live_remote_api_1 = require("live-remote-api");
-var selectedParam;
-document.addEventListener("keydown", function (e) {
-    switch (e.key) {
-        case "Backspace":
-            if (selectedParam && selectedParam.def() != NaN)
-                selectedParam.api().set("value", selectedParam.def());
-            e.preventDefault();
-            return false;
-    }
-});
-document.onmousedown = function () { return globl.deselect(); };
-if (navigator.userAgent.toLowerCase().indexOf("android") != -1) {
-    setInterval(function () { return live_remote_api_1.RemoteApi.echo("0", function (err, mess) { }); }, 90);
-}
-var globl;
-(function (globl) {
-    function select(param) {
-        if (selectedParam == param)
-            return;
-        deselect();
-        param.div().addClass("selected");
-        selectedParam = param;
-    }
-    globl.select = select;
-    function deselect() {
-        if (selectedParam) {
-            selectedParam.div().removeClass("selected");
-            selectedParam = undefined;
-        }
-    }
-    globl.deselect = deselect;
-})(globl = exports.globl || (exports.globl = {}));
-
-},{"live-remote-api":6}],17:[function(require,module,exports){
-"use strict";
-if ("ontouchstart" in document) {
-    Element.prototype.requestPointerLock = function () { };
-    document.exitPointerLock = function () { };
-}
-else {
-    Element.prototype.requestPointerLock = Element.prototype.requestPointerLock || Element.prototype.mozRequestPointerLock || Element.prototype.webkitRequestPointerLock;
-    document.exitPointerLock = document.exitPointerLock || document.mozExitPointerLock || document.webkitExitPointerLock;
-}
-var Toggle_1 = require("./Toggle");
-var Slider_1 = require("./Slider");
-var HSlider_1 = require("./HSlider");
-var Knob_1 = require("./Knob");
-var PanKnob_1 = require("./PanKnob");
-var XYPad_1 = require("./XYPad");
-var params;
-(function (params) {
-    params.Toggle = Toggle_1.Toggle;
-    params.Slider = Slider_1.Slider;
-    params.HSlider = HSlider_1.HSlider;
-    params.Knob = Knob_1.Knob;
-    params.PanKnob = PanKnob_1.PanKnob;
-    params.XYPad = XYPad_1.XYPad;
-})(params = exports.params || (exports.params = {}));
-
-},{"./HSlider":10,"./Knob":11,"./PanKnob":12,"./Slider":13,"./Toggle":14,"./XYPad":15}],18:[function(require,module,exports){
+},{"string-split-keep":8}],8:[function(require,module,exports){
 "use strict"
 
 module.exports = function(str, separator, limit) {

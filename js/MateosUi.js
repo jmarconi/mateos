@@ -1,5 +1,6 @@
 "use strict"
 const jQuery = require("jquery");
+
 // const MateosBGCanvas = require("./MateosBGCanvas.js");
 
 class MateosUi {
@@ -39,7 +40,7 @@ class MateosUi {
         jQuery(playButton)
             .addClass('play-button')
             .click(play).text("play")
-            .appendTo($("body"));
+            .appendTo($("#overlay .message, body"));
     }
 
     static play() {
@@ -57,8 +58,38 @@ class MateosUi {
         $('.ui-tempo[beat=' + beat + ']').addClass("active");
     }
 
-    static setBeatNumber(beatNumber){
+    static setBeatNumber(beatNumber) {
         jQuery(".beat-counter").html(beatNumber);
+    }
+
+    static showPattern(element, pattern) {
+        pattern = {
+            1: false,
+            2: false,
+            3: true,
+            4: false,
+            5: false,
+            6: false,
+            7: true,
+            8: false,
+        };
+        $(".ui-" + element).each(function () {
+            let beat = parseInt($(this).attr("beat"));
+
+            if (pattern[beat]) {
+                $(this).attr("selected", "selected").addClass("selected");
+            } else {
+                $(this).attr("selected", null).removeClass("selected");
+            }
+        })
+    }
+
+    static hidePattern(element) {
+        $(".ui-" + element).attr("selected", null).removeClass("selected");
+    }
+
+    static showInstruction(text) {
+        $("#instructions").html(text);
     }
 }
 

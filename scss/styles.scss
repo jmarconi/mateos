@@ -64,6 +64,7 @@
     background-image:url(buttons/snare-normal.png);
     background-size: 100%;
     filter: grayscale(75%);
+    transition: filter 0.8s linear;
 
     //transition: .15s;
 
@@ -115,7 +116,9 @@
   top: 50%;
   -webkit-transform: translate(-50%, -50%);
   transform: translate(-50%, -50%);
-
+  #instructions{
+    color: aliceblue;
+  }
  
 }
 
@@ -129,6 +132,7 @@
   &:hover {
     background-color: #737d7a;
   }
+  margin-left: 45%;
 }
 
 #canvas-background {
@@ -151,15 +155,7 @@
   background-color: black;
 }
 
-//.circulobg {
-  //  background-image: url(buttons/background-circle.png);
-    //background-size: 54%;
-    //min-height: 1075px;
-    //min-width: 500px;
-    //background-repeat: no-repeat;
-    //background-position: 50%;
-    //opacity: 2;
-//}
+
 
 .infokeys {
 	background-image: url(buttons/key-indicators.png);
@@ -174,3 +170,20 @@
 body{
 	background-color: black;
 }
+
+
+#overlay {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  min-width: 100%;
+  min-height: 100%;
+  z-index: -1;
+  filter:opacity(40%);
+  background-color: #737d7a;
+  .message{
+    padding-top: 25%;
+    text-align: center;
+  }
+}
+

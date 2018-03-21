@@ -23,7 +23,11 @@
 </video>
 <div id="particles-js"></div>
 <div class="game-container">
+    <div id="instructions">
+
+    </div>
     <ul class='circle-container'>
+
         <div class="beat-counter"></div>
         <li>
             <div beat='3' class="ui-tempo"></div>
@@ -50,32 +54,32 @@
             <div beat='2' class="ui-tempo"></div>
         </li>
     </ul>
-    <ul id='kick-container'>
-        <li>
-            <div beat='3' class="ui-kick"></div>
-        </li>
-        <li>
-            <div beat='4' class="ui-kick"></div>
-        </li>
-        <li>
-            <div beat='5' class="ui-kick"></div>
-        </li>
-        <li>
-            <div beat='6' class="ui-kick"></div>
-        </li>
-        <li>
-            <div beat='7' class="ui-kick"></div>
-        </li>
-        <li>
-            <div beat='8' class="ui-kick"></div>
-        </li>
-        <li>
-            <div beat='1' class="ui-kick"></div>
-        </li>
-        <li>
-            <div beat='2' class="ui-kick"></div>
-        </li>
-    </ul>
+    <!--<ul id='kick-container'>-->
+        <!--<li>-->
+            <!--<div beat='3' class="ui-kick"></div>-->
+        <!--</li>-->
+        <!--<li>-->
+            <!--<div beat='4' class="ui-kick"></div>-->
+        <!--</li>-->
+        <!--<li>-->
+            <!--<div beat='5' class="ui-kick"></div>-->
+        <!--</li>-->
+        <!--<li>-->
+            <!--<div beat='6' class="ui-kick"></div>-->
+        <!--</li>-->
+        <!--<li>-->
+            <!--<div beat='7' class="ui-kick"></div>-->
+        <!--</li>-->
+        <!--<li>-->
+            <!--<div beat='8' class="ui-kick"></div>-->
+        <!--</li>-->
+        <!--<li>-->
+            <!--<div beat='1' class="ui-kick"></div>-->
+        <!--</li>-->
+        <!--<li>-->
+            <!--<div beat='2' class="ui-kick"></div>-->
+        <!--</li>-->
+    <!--</ul>-->
 
     <ul id='snare-container'>
         <li>
@@ -133,15 +137,17 @@
 
 </div>
 <div class="circulobg"></div>
-
 <div class="infokeys"></div>
 
 
-<div id="controls">
-    <div id="tempoBox">
-        Tempo: <span id="showTempo">120</span>BPM
+<div id="overlay">
+    <div class="message">
+        click this to start
+
     </div>
 </div>
+
+
 </body>
 <style>
     .param {
