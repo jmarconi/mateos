@@ -16,6 +16,18 @@ var audioContext = null;
 var timerWorker = null;
 
 
+const sequences = {
+    "percussion": {
+        1: "00100010",
+        2: "01100110"
+    },
+    "moreGroove": {
+        1: "00100010",
+        2: "00100011"
+    }
+};
+
+
 var metronome = {
     // Are we currently playing?
     isPlaying: false,
@@ -37,7 +49,18 @@ var metronome = {
     // the notes that have been put into the web audio, and may or may not have played yet. {note, time}
     notesInQueue: [],
     compass: 1,
+    //mrouds??
+    rounds: 3,
+    //initial state
+    currentState: "solid",
+    currentLevel: "percussion",
+    currentSequence: 1,
+    currentScore: {
+        1: false,
+        2: false,
+    },
 
+    sequences: sequences,
 
     nextNote: function () {
         // console.log("next note");
@@ -54,7 +77,8 @@ var metronome = {
 
         if (metronome.current16thNote > 16) {
             metronome.compass++;
-            if (metronome.compass > 4) {
+
+            if (metronome.compass > metronome.rounds) {
                 metronome.compass = 1;
             }
             metronome.current16thNote = 1;
@@ -66,6 +90,64 @@ var metronome = {
         return beat;
     },
 
+    initSequence(element, number) {
+        if (element == "snare") {
+            MateosUi.blockElement("snare");
+            MateosUi.showPattern("snare", metronome.sequences[metronome.currentLevel][metronome.currentSequence]);
+        }
+    },
+
+    evaluateSequence() {
+        const actualSequence = metronome.sequences[metronome.currentLevel][metronome.currentSequence];
+        const success = actualSequence == MateosUi.getElementSequence("snare");
+        metronome.currentScore[metronome.currentSequence] = success;
+        if (success) {
+            MateosUi.updateFeedBack("Yeah!");
+        } else {
+            MateosUi.updateFeedBack("nope :(");
+        }
+        MateosUi.updateInfo();
+        metronome.executeSequenceTransition()
+    },
+
+    executeSequenceTransition() {
+        if (metronome.currentSequence == 1) {
+            metronome.levelUp();
+        } else if (metronome.currentSequence == 2) {
+            if (metronome.currentScore["1"] && metronome.currentScore["2"]) {
+                metronome.levelUp();
+            } else {
+                metronome.levelDown();
+            }
+        }
+    },
+
+    levelUp() {
+        if (metronome.currentLevel == "percussion") {
+            if (metronome.currentSequence == 1) {
+                metronome.currentSequence = 2;
+            } else if (metronome.currentSequence == 2) {
+                metronome.currentLevel = "moreGroove";
+                metronome.currentSequence = 1;
+            }
+        } else if (metronome.currentLevel == "moreGroove") {
+            if (metronome.currentSequence == 1) {
+                metronome.currentSequence = 2;
+            } else if (metronome.currentSequence == 2) {
+                // metronome.currentLevel = "moreGroove";
+                metronome.currentSequence = 1;
+            }
+        }
+    },
+
+    levelDown() {
+        if (metronome.currentLevel == "percussion") {
+                metronome.currentSequence = 1;
+        }else if (metronome.currentLevel == "moreGroove") {
+            metronome.currentLevel = "percussion";
+            metronome.currentSequence = 1;
+        }
+    },
 
     scheduleNote: function (beatNumber, time) {
         metronome.notesInQueue.push({note: beatNumber, time: time});
@@ -75,15 +157,27 @@ var metronome = {
         }
         if (beatNumber == 1) {
             if (metronome.compass == 1) {
-                MateosUi.showInstruction("Look!")
-                MateosUi.showPattern("snare",{});
+                MateosUi.showInstruction("Look!");
+                MateosUi.updateFeedBack("");
+                metronome.initSequence("snare", 1);
                 metronome.fireClips();
-            } else if (metronome.compass == 2) {
-                MateosUi.hidePattern("snare");
-                MateosUi.showInstruction("Repeat")
-            }else if (metronome.compass == 3){
+
+            } else if (metronome.compass == 3) {
                 metronome.fireClips();
+                MateosUi.blockElement("snare");
                 MateosUi.showInstruction("Validate")
+            }
+        }
+        else if (beatNumber == 8) {
+            if (metronome.compass == 1) {
+                MateosUi.showInstruction("Repeat");
+                MateosUi.hidePattern("snare");
+                MateosUi.unblockElement("snare");
+            }
+        }
+        else if (beatNumber == 15) {
+            if (metronome.compass == 2) {
+                metronome.evaluateSequence();
             }
         }
 

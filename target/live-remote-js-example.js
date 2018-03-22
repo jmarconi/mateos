@@ -113,35 +113,29 @@ var MateosUi = function () {
     }
 
     _createClass(MateosUi, null, [{
+        key: "doBinds",
+        value: function doBinds() {
+            this.doUnBinds();
+            jQuery("#kick-container .ui-kick, #snare-container .ui-snare, #hihat-container .ui-hihat").bind("click", function () {
+                jQuery(this).toggleClass("selected");
+                if (jQuery(this).attr("selected") == 'selected') {
+                    jQuery(this).attr("selected", null);
+                } else {
+                    jQuery(this).attr("selected", "selected");
+                }
+            });
+        }
+    }, {
+        key: "doUnBinds",
+        value: function doUnBinds() {
+            jQuery("#kick-container .ui-kick, #snare-container .ui-snare, #snare-container .ui-hihat").unbind("click");
+        }
+    }, {
         key: "init",
         value: function init() {
-            jQuery("#kick-container .ui-kick").click(function (event) {
-                jQuery(this).toggleClass("selected");
-                if (jQuery(this).attr("selected") == 'selected') {
-                    jQuery(this).attr("selected", null);
-                } else {
-                    jQuery(this).attr("selected", "selected");
-                }
-            });
-
-            jQuery("#snare-container .ui-snare").click(function (event) {
-                jQuery(this).toggleClass("selected");
-                if (jQuery(this).attr("selected") == 'selected') {
-                    jQuery(this).attr("selected", null);
-                } else {
-                    jQuery(this).attr("selected", "selected");
-                }
-            });
-
-            jQuery("#hihat-container .ui-hihat").click(function (event) {
-                jQuery(this).toggleClass("selected");
-                if (jQuery(this).attr("selected") == 'selected') {
-                    jQuery(this).attr("selected", null);
-                } else {
-                    jQuery(this).attr("selected", "selected");
-                }
-            });
             this.setTempo("1");
+            this.doBinds();
+            this.updateInfo();
             // window.MateosBgCanvas.execute();
         }
     }, {
@@ -176,20 +170,11 @@ var MateosUi = function () {
     }, {
         key: "showPattern",
         value: function showPattern(element, pattern) {
-            pattern = {
-                1: false,
-                2: false,
-                3: true,
-                4: false,
-                5: false,
-                6: false,
-                7: true,
-                8: false
-            };
+            pattern = pattern.split("");
             $(".ui-" + element).each(function () {
                 var beat = parseInt($(this).attr("beat"));
 
-                if (pattern[beat]) {
+                if (pattern[beat - 1] == 1) {
                     $(this).attr("selected", "selected").addClass("selected");
                 } else {
                     $(this).attr("selected", null).removeClass("selected");
@@ -205,6 +190,55 @@ var MateosUi = function () {
         key: "showInstruction",
         value: function showInstruction(text) {
             $("#instructions").html(text);
+        }
+    }, {
+        key: "blockElement",
+        value: function blockElement(element) {
+            jQuery("#" + element + "-container .ui-" + element).unbind("click");
+        }
+    }, {
+        key: "unblockElement",
+        value: function unblockElement(element) {
+            jQuery("#" + element + "-container .ui-" + element).bind("click", function () {
+                jQuery(this).toggleClass("selected");
+                if (jQuery(this).attr("selected") == 'selected') {
+                    jQuery(this).attr("selected", null);
+                } else {
+                    jQuery(this).attr("selected", "selected");
+                }
+            });
+        }
+    }, {
+        key: "getElementSequence",
+        value: function getElementSequence(element) {
+            var sequence = "";
+            var elements = jQuery("#" + element + "-container .ui-" + element);
+            elements.sort(function (a, b) {
+                a = $(a);
+                b = $(b);
+                if (a.attr("beat") > b.attr("beat")) return 1;else if (a.attr("beat") < b.attr("beat")) return -1;else return 0;
+            });
+            elements.each(function () {
+                if ($(this).attr("selected") == "selected") {
+                    sequence += "1";
+                } else {
+                    sequence += "0";
+                }
+            });
+
+            return sequence;
+        }
+    }, {
+        key: "updateInfo",
+        value: function updateInfo() {
+            jQuery("#info #current-state .place-holder").html(metronome.currentState);
+            jQuery("#info #current-level .place-holder").html(metronome.currentLevel);
+            jQuery("#info #current-sequence .place-holder").html(metronome.currentSequence);
+        }
+    }, {
+        key: "updateFeedBack",
+        value: function updateFeedBack(message) {
+            jQuery("#feedback").html(message);
         }
     }]);
 
@@ -270,6 +304,17 @@ var audioContext = null;
 // The Web Worker used to fire timer messages
 var timerWorker = null;
 
+var sequences = {
+    "percussion": {
+        1: "00100010",
+        2: "01100110"
+    },
+    "moreGroove": {
+        1: "00100010",
+        2: "00100011"
+    }
+};
+
 var metronome = {
     // Are we currently playing?
     isPlaying: false,
@@ -291,6 +336,18 @@ var metronome = {
     // the notes that have been put into the web audio, and may or may not have played yet. {note, time}
     notesInQueue: [],
     compass: 1,
+    //mrouds??
+    rounds: 3,
+    //initial state
+    currentState: "solid",
+    currentLevel: "percussion",
+    currentSequence: 1,
+    currentScore: {
+        1: false,
+        2: false
+    },
+
+    sequences: sequences,
 
     nextNote: function nextNote() {
         // console.log("next note");
@@ -306,7 +363,8 @@ var metronome = {
 
         if (metronome.current16thNote > 16) {
             metronome.compass++;
-            if (metronome.compass > 4) {
+
+            if (metronome.compass > metronome.rounds) {
                 metronome.compass = 1;
             }
             metronome.current16thNote = 1;
@@ -318,6 +376,62 @@ var metronome = {
         return beat;
     },
 
+    initSequence: function initSequence(element, number) {
+        if (element == "snare") {
+            _MateosUi.MateosUi.blockElement("snare");
+            _MateosUi.MateosUi.showPattern("snare", metronome.sequences[metronome.currentLevel][metronome.currentSequence]);
+        }
+    },
+    evaluateSequence: function evaluateSequence() {
+        var actualSequence = metronome.sequences[metronome.currentLevel][metronome.currentSequence];
+        var success = actualSequence == _MateosUi.MateosUi.getElementSequence("snare");
+        metronome.currentScore[metronome.currentSequence] = success;
+        if (success) {
+            _MateosUi.MateosUi.updateFeedBack("Yeah!");
+        } else {
+            _MateosUi.MateosUi.updateFeedBack("nope :(");
+        }
+        _MateosUi.MateosUi.updateInfo();
+        metronome.executeSequenceTransition();
+    },
+    executeSequenceTransition: function executeSequenceTransition() {
+        if (metronome.currentSequence == 1) {
+            metronome.levelUp();
+        } else if (metronome.currentSequence == 2) {
+            if (metronome.currentScore["1"] && metronome.currentScore["2"]) {
+                metronome.levelUp();
+            } else {
+                metronome.levelDown();
+            }
+        }
+    },
+    levelUp: function levelUp() {
+        if (metronome.currentLevel == "percussion") {
+            if (metronome.currentSequence == 1) {
+                metronome.currentSequence = 2;
+            } else if (metronome.currentSequence == 2) {
+                metronome.currentLevel = "moreGroove";
+                metronome.currentSequence = 1;
+            }
+        } else if (metronome.currentLevel == "moreGroove") {
+            if (metronome.currentSequence == 1) {
+                metronome.currentSequence = 2;
+            } else if (metronome.currentSequence == 2) {
+                // metronome.currentLevel = "moreGroove";
+                metronome.currentSequence = 1;
+            }
+        }
+    },
+    levelDown: function levelDown() {
+        if (metronome.currentLevel == "percussion") {
+            metronome.currentSequence = 1;
+        } else if (metronome.currentLevel == "moreGroove") {
+            metronome.currentLevel = "percussion";
+            metronome.currentSequence = 1;
+        }
+    },
+
+
     scheduleNote: function scheduleNote(beatNumber, time) {
         metronome.notesInQueue.push({ note: beatNumber, time: time });
         if (beatNumber % 2 == 0) {
@@ -327,14 +441,23 @@ var metronome = {
         if (beatNumber == 1) {
             if (metronome.compass == 1) {
                 _MateosUi.MateosUi.showInstruction("Look!");
-                _MateosUi.MateosUi.showPattern("snare", {});
+                _MateosUi.MateosUi.updateFeedBack("");
+                metronome.initSequence("snare", 1);
                 metronome.fireClips();
-            } else if (metronome.compass == 2) {
-                _MateosUi.MateosUi.hidePattern("snare");
-                _MateosUi.MateosUi.showInstruction("Repeat");
             } else if (metronome.compass == 3) {
                 metronome.fireClips();
+                _MateosUi.MateosUi.blockElement("snare");
                 _MateosUi.MateosUi.showInstruction("Validate");
+            }
+        } else if (beatNumber == 8) {
+            if (metronome.compass == 1) {
+                _MateosUi.MateosUi.showInstruction("Repeat");
+                _MateosUi.MateosUi.hidePattern("snare");
+                _MateosUi.MateosUi.unblockElement("snare");
+            }
+        } else if (beatNumber == 15) {
+            if (metronome.compass == 2) {
+                metronome.evaluateSequence();
             }
         }
     },

@@ -64,7 +64,7 @@
     background-image:url(buttons/snare-normal.png);
     background-size: 100%;
     filter: grayscale(75%);
-    transition: filter 0.8s linear;
+    transition: filter 0.4s linear;
 
     //transition: .15s;
 
@@ -117,7 +117,11 @@
   -webkit-transform: translate(-50%, -50%);
   transform: translate(-50%, -50%);
   #instructions{
-    color: aliceblue;
+    color: darkolivegreen;
+    font-size: 40px;
+    font-family: monospace;
+    position: relative;
+    top: 35px;
   }
  
 }
@@ -194,3 +198,13 @@ body{
   }
 }
 
+#info div {
+  color: wheat;
+}
+
+#feedback{
+  margin-top: 50px;
+  margin-left: 50px;
+  color: wheat;
+  font-size: 30px;
+}

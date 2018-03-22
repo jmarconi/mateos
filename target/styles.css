@@ -106,7 +106,7 @@
     background-image: url(buttons/snare-normal.png);
     background-size: 100%;
     filter: grayscale(75%);
-    transition: filter 0.8s linear; }
+    transition: filter 0.4s linear; }
   #snare-container div.ui-snare.selected {
     filter: grayscale(0); }
 
@@ -156,7 +156,11 @@
   -webkit-transform: translate(-50%, -50%);
   transform: translate(-50%, -50%); }
   .game-container #instructions {
-    color: aliceblue; }
+    color: darkolivegreen;
+    font-size: 40px;
+    font-family: monospace;
+    position: relative;
+    top: 35px; }
 
 .play-button {
   border: 2px solid #333333;
@@ -198,6 +202,11 @@
 body {
   background-color: black; }
 
+.logo {
+  background-image: url(images/logo.png);
+  width: 300px;
+  height: auto; }
+
 #overlay {
   position: fixed;
   right: 0;
@@ -211,7 +220,11 @@ body {
     padding-top: 25%;
     text-align: center; }
 
-.logo {
-  background-image: url(images/logo.png);
-  width: 300px;
-  height: auto; }
+#info div {
+  color: wheat; }
+
+#feedback {
+  margin-top: 50px;
+  margin-left: 50px;
+  color: wheat;
+  font-size: 30px; }
