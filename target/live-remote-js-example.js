@@ -306,12 +306,34 @@ var timerWorker = null;
 
 var sequences = {
     "percussion": {
-        1: "00100010",
-        2: "01100110"
+        1: {
+            "snare": "00100010",
+            "hihat": "00000000"
+        },
+        2: {
+            "snare": "01100110",
+            "hihat": "00000000"
+        }
     },
     "moreGroove": {
-        1: "00100010",
-        2: "00100011"
+        1: {
+            "snare": "00100010",
+            "hihat": "01010101"
+        },
+        2: {
+            "snare": "00100011",
+            "hihat": "01011101"
+        }
+    },
+    "shaker": {
+        1: {
+            "snare": "00001000",
+            "hihat": "01100110"
+        },
+        2: {
+            "snare": "00001011",
+            "hihat": "11101110"
+        }
     }
 };
 
@@ -376,14 +398,12 @@ var metronome = {
         return beat;
     },
 
-    initSequence: function initSequence(element, number) {
-        if (element == "snare") {
-            _MateosUi.MateosUi.blockElement("snare");
-            _MateosUi.MateosUi.showPattern("snare", metronome.sequences[metronome.currentLevel][metronome.currentSequence]);
-        }
+    initSequence: function initSequence(element) {
+        _MateosUi.MateosUi.blockElement(element);
+        _MateosUi.MateosUi.showPattern(element, metronome.sequences[metronome.currentLevel][metronome.currentSequence][element]);
     },
     evaluateSequence: function evaluateSequence() {
-        var actualSequence = metronome.sequences[metronome.currentLevel][metronome.currentSequence];
+        var actualSequence = metronome.sequences[metronome.currentLevel][metronome.currentSequence]["snare"];
         var success = actualSequence == _MateosUi.MateosUi.getElementSequence("snare");
         metronome.currentScore[metronome.currentSequence] = success;
         if (success) {
@@ -420,7 +440,14 @@ var metronome = {
             if (metronome.currentSequence == 1) {
                 metronome.currentSequence = 2;
             } else if (metronome.currentSequence == 2) {
-                // metronome.currentLevel = "moreGroove";
+                metronome.currentLevel = "shaker";
+                metronome.currentSequence = 1;
+            }
+        } else if (metronome.currentLevel == "shaker") {
+            if (metronome.currentSequence == 1) {
+                metronome.currentSequence = 2;
+            } else if (metronome.currentSequence == 2) {
+                // metronome.currentLevel = "shaker";
                 metronome.currentSequence = 1;
             }
         }
@@ -430,6 +457,9 @@ var metronome = {
             metronome.currentSequence = 1;
         } else if (metronome.currentLevel == "moreGroove") {
             metronome.currentLevel = "percussion";
+            metronome.currentSequence = 1;
+        } else if (metronome.currentLevel == "shaker") {
+            metronome.currentLevel = "moreGroove";
             metronome.currentSequence = 1;
         }
     },
@@ -443,20 +473,15 @@ var metronome = {
         }
         if (beatNumber == 1) {
             if (metronome.compass == 1) {
-                _MateosUi.MateosUi.showInstruction("Look!");
-                _MateosUi.MateosUi.updateFeedBack("");
-                metronome.initSequence("snare", 1);
+                metronome.executeLook();
                 metronome.fireClips();
             } else if (metronome.compass == 3) {
                 metronome.fireClips();
-                _MateosUi.MateosUi.blockElement("snare");
-                _MateosUi.MateosUi.showInstruction("Validate");
+                metronome.executeValidate();
             }
         } else if (beatNumber == 8) {
             if (metronome.compass == 1) {
-                _MateosUi.MateosUi.showInstruction("Repeat");
-                _MateosUi.MateosUi.hidePattern("snare");
-                _MateosUi.MateosUi.unblockElement("snare");
+                metronome.executeRepeat();
             }
         } else if (beatNumber == 15) {
             if (metronome.compass == 2) {
@@ -465,11 +490,31 @@ var metronome = {
         }
     },
 
+    executeLook: function executeLook() {
+        _MateosUi.MateosUi.showInstruction("Look!");
+        _MateosUi.MateosUi.updateFeedBack("");
+        metronome.initSequence("snare");
+        metronome.initSequence("hihat");
+    },
+
+    executeRepeat: function executeRepeat() {
+        _MateosUi.MateosUi.showInstruction("Repeat");
+        _MateosUi.MateosUi.hidePattern("snare");
+        _MateosUi.MateosUi.hidePattern("hihat");
+        _MateosUi.MateosUi.unblockElement("snare");
+        _MateosUi.MateosUi.unblockElement("hihat");
+    },
+
+    executeValidate: function executeValidate() {
+
+        _MateosUi.MateosUi.blockElement("snare");
+        _MateosUi.MateosUi.blockElement("hihat");
+        _MateosUi.MateosUi.showInstruction("Validate");
+    },
+
     scheduler: function scheduler() {
         // while there are notes that will need to play before the next interval, schedule them and advance the pointer.
-        //console.log("nextNoteTime " + metronome.nextNoteTime);
         while (metronome.nextNoteTime < audioContext.currentTime + metronome.scheduleAheadTime) {
-            //console.log("addingnote");
             metronome.scheduleNote(metronome.current16thNote, metronome.nextNoteTime);
             metronome.nextNote();
         }
@@ -489,10 +534,11 @@ var metronome = {
     doPlay: function doPlay() {
         timerWorker.postMessage("start");
         RemoteApi.create("live_set", function (err, api) {
-            //api.get("current_song_time",function(val){console.log(val)} );
             api.call("start_playing");
         });
+
         _MateosUi.MateosUi.play();
+
         return true;
     },
     //on stop we reset tempo on client and live
@@ -500,6 +546,10 @@ var metronome = {
         timerWorker.postMessage("stop");
         metronome.current16thNote = 1;
         metronome.compass = 1;
+        metronome.currentLevel = "percussion";
+        metronome.currentSequence = 1;
+        metronome.currentState = "solid";
+        metronome.currentScore = { 1: false, 2: false };
         RemoteApi.create("live_set", function (err, api) {
             api.call("stop_playing");
             api.call("stop_all_clips");
@@ -507,22 +557,25 @@ var metronome = {
         });
         _MateosUi.MateosUi.stop();
         metronome.notesInQueue = [];
+        metronome.executeLook();
+        _MateosUi.MateosUi.updateInfo();
+
         return false;
     },
 
-    executeKickBeat: function executeKickBeat(Beat) {
-        if ($(".ui-kick.selected[beat=" + Beat + "]").length) {
-            //fire clip
-            RemoteApi.create("live_set tracks 1 clip_slots 1", function (err, api) {
-                api.call('fire');
-            });
-        } else {
-            //fire empty clip
-            RemoteApi.create("live_set tracks 1 clip_slots 0", function (err, api) {
-                api.call('fire');
-            });
-        }
-    },
+    // executeKickBeat: function (Beat) {
+    //     if ($(".ui-kick.selected[beat=" + Beat + "]").length) {
+    //         //fire clip
+    //         RemoteApi.create("live_set tracks 1 clip_slots 1", function (err, api) {
+    //             api.call('fire');
+    //         });
+    //     } else {
+    //         //fire empty clip
+    //         RemoteApi.create("live_set tracks 1 clip_slots 0", function (err, api) {
+    //             api.call('fire');
+    //         });
+    //     }
+    // },
 
     executeSnareBeat: function executeSnareBeat() {
         $(".ui-snare").each(function () {
@@ -540,24 +593,26 @@ var metronome = {
         });
     },
 
-    executeHiHatBeat: function executeHiHatBeat(Beat) {
-        if ($(".ui-hihat.selected[beat=" + Beat + "]").length) {
-            //fire clip
-            RemoteApi.create("live_set tracks 3 clip_slots 1", function (err, api) {
-                api.call('fire');
-            });
-        } else {
-            //fire empty clip
-            RemoteApi.create("live_set tracks 3 clip_slots 0", function (err, api) {
-                api.call('fire');
-            });
-        }
+    executeHiHatBeat: function executeHiHatBeat() {
+        $(".ui-hihat").each(function () {
+            var beat = parseInt($(this).attr("beat"));
+            var channel = beat + 13;
+            if ($(this).attr("selected")) {
+                RemoteApi.create("live_set tracks " + channel + "  clip_slots 1", function (err, api) {
+                    api.call('fire');
+                });
+            } else {
+                RemoteApi.create("live_set tracks " + channel + "  clip_slots 0", function (err, api) {
+                    api.call('fire');
+                });
+            }
+        });
     },
 
     fireClips: function fireClips() {
         // metronome.executeKickBeat(Beat);
         metronome.executeSnareBeat();
-        // metronome.executeHiHatBeat(Beat);
+        metronome.executeHiHatBeat();
     },
 
     draw: function draw() {
