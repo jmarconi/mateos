@@ -120,6 +120,7 @@ class MateosUi {
         jQuery("#info #current-state .place-holder").html(metronome.currentState);
         jQuery("#info #current-level .place-holder").html(metronome.currentLevel);
         jQuery("#info #current-sequence .place-holder").html(metronome.currentSequence);
+        jQuery("#info #current-beat .place-holder").html(metronome.currentBeat);
     }
 
     static updateFeedBack(message)

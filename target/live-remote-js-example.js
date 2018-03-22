@@ -234,6 +234,7 @@ var MateosUi = function () {
             jQuery("#info #current-state .place-holder").html(metronome.currentState);
             jQuery("#info #current-level .place-holder").html(metronome.currentLevel);
             jQuery("#info #current-sequence .place-holder").html(metronome.currentSequence);
+            jQuery("#info #current-beat .place-holder").html(metronome.currentBeat);
         }
     }, {
         key: "updateFeedBack",
@@ -299,7 +300,7 @@ RemoteApi.onOpen(function () {
     window.addEventListener("load", metronome.init);
 });
 
-var audioContext = null;
+// var audioContext = null;
 
 // The Web Worker used to fire timer messages
 var timerWorker = null;
@@ -338,6 +339,7 @@ var sequences = {
 };
 
 var metronome = {
+    audioContext: null,
     // Are we currently playing?
     isPlaying: false,
     // What note is currently last scheduled?
@@ -368,6 +370,7 @@ var metronome = {
         1: false,
         2: false
     },
+    currentBeat: 1,
 
     sequences: sequences,
 
@@ -467,9 +470,12 @@ var metronome = {
 
     scheduleNote: function scheduleNote(beatNumber, time) {
         metronome.notesInQueue.push({ note: beatNumber, time: time });
+        _MateosUi.MateosUi.updateInfo();
+
         if (beatNumber % 2 == 0) {
             var Beat = metronome.getUiStep(beatNumber);
             _MateosUi.MateosUi.setTempo(Beat);
+            metronome.currentBeat = Beat;
         }
         if (beatNumber == 1) {
             if (metronome.compass == 1) {
@@ -514,7 +520,7 @@ var metronome = {
 
     scheduler: function scheduler() {
         // while there are notes that will need to play before the next interval, schedule them and advance the pointer.
-        while (metronome.nextNoteTime < audioContext.currentTime + metronome.scheduleAheadTime) {
+        while (metronome.nextNoteTime < metronome.audioContext.currentTime + metronome.scheduleAheadTime) {
             metronome.scheduleNote(metronome.current16thNote, metronome.nextNoteTime);
             metronome.nextNote();
         }
@@ -522,6 +528,7 @@ var metronome = {
 
     play: function play() {
         $("#overlay").hide();
+        metronome.resetCurrents();
         metronome.isPlaying = !metronome.isPlaying;
         if (metronome.isPlaying) {
             // start playing
@@ -532,6 +539,7 @@ var metronome = {
     },
 
     doPlay: function doPlay() {
+        metronome.nextNoteTime = metronome.audioContext.currentTime;
         timerWorker.postMessage("start");
         RemoteApi.create("live_set", function (err, api) {
             api.call("start_playing");
@@ -541,15 +549,21 @@ var metronome = {
 
         return true;
     },
-    //on stop we reset tempo on client and live
-    doStop: function doStop() {
-        timerWorker.postMessage("stop");
+
+    resetCurrents: function resetCurrents() {
         metronome.current16thNote = 1;
         metronome.compass = 1;
         metronome.currentLevel = "percussion";
         metronome.currentSequence = 1;
         metronome.currentState = "solid";
         metronome.currentScore = { 1: false, 2: false };
+        metronome.currentBeat = 1;
+    },
+
+    //on stop we reset tempo on client and live
+    doStop: function doStop() {
+        timerWorker.postMessage("stop");
+        metronome.resetCurrents();
         RemoteApi.create("live_set", function (err, api) {
             api.call("stop_playing");
             api.call("stop_all_clips");
@@ -637,7 +651,7 @@ var metronome = {
         // Http://cwilso.github.io/AudioContext-MonkeyPatch/AudioContextMonkeyPatch.js
         // TO WORK ON CURRENT CHROME!!  But this means our code can be properly
         // spec-compliant, and work on Chrome, Safari and Firefox.
-        audioContext = new AudioContext();
+        metronome.audioContext = new AudioContext();
 
         // // if we wanted to load audio files, etc., this is where we should do it.
         console.log("init");
@@ -669,6 +683,7 @@ window.requestAnimFrame = function () {
 }();
 
 window.metronome = metronome;
+// window.audioContext = audioContext;
 
 },{"./MateosUi":2,"jquery":5,"live-remote-api":6}],5:[function(require,module,exports){
 /*eslint-disable no-unused-vars*/
