@@ -47,7 +47,7 @@ class MateosUi {
     }
 
     static setTempo(beat) {
-        console.log("set temp " + beat)
+        // console.log("set temp " + beat)
         $(".ui-tempo").removeClass("active");
         $('.ui-tempo[beat=' + beat + ']').addClass("active");
     }

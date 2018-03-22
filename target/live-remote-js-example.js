@@ -158,7 +158,7 @@ var MateosUi = function () {
     }, {
         key: "setTempo",
         value: function setTempo(beat) {
-            console.log("set temp " + beat);
+            // console.log("set temp " + beat)
             $(".ui-tempo").removeClass("active");
             $('.ui-tempo[beat=' + beat + ']').addClass("active");
         }
@@ -391,16 +391,19 @@ var metronome = {
         } else {
             _MateosUi.MateosUi.updateFeedBack("nope :(");
         }
-        _MateosUi.MateosUi.updateInfo();
         metronome.executeSequenceTransition();
+        _MateosUi.MateosUi.updateInfo();
     },
     executeSequenceTransition: function executeSequenceTransition() {
         if (metronome.currentSequence == 1) {
             metronome.levelUp();
+            console.log("level up 1");
         } else if (metronome.currentSequence == 2) {
             if (metronome.currentScore["1"] && metronome.currentScore["2"]) {
+                console.log("level up 2");
                 metronome.levelUp();
             } else {
+                console.log("level down");
                 metronome.levelDown();
             }
         }

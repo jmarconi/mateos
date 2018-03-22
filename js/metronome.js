@@ -106,17 +106,20 @@ var metronome = {
         } else {
             MateosUi.updateFeedBack("nope :(");
         }
-        MateosUi.updateInfo();
         metronome.executeSequenceTransition()
+        MateosUi.updateInfo();
     },
 
     executeSequenceTransition() {
         if (metronome.currentSequence == 1) {
             metronome.levelUp();
+            console.log("level up 1");
         } else if (metronome.currentSequence == 2) {
             if (metronome.currentScore["1"] && metronome.currentScore["2"]) {
+                console.log("level up 2");
                 metronome.levelUp();
             } else {
+                console.log("level down");
                 metronome.levelDown();
             }
         }
