@@ -3,263 +3,504 @@ import {jQuery} from 'jquery';
 import {MateosUi} from './MateosUi';
 
 window.MateosUi = MateosUi;
-
-
+// window.jQuery = jQuery;
 RemoteApi.onOpen(function () {
     window.RemoteApi = RemoteApi;
-    window.addEventListener("load", metronome.init);
+    window.addEventListener("load", game.init);
 });
 
-// var audioContext = null;
-
-// The Web Worker used to fire timer messages
-var timerWorker = null;
-
-
-const sequences = {
-    "percussion": {
-        1: {
-            "snare": "00100010",
-            "hihat": "00000000"
-        },
-        2: {
-            "snare": "01100110",
-            "hihat": "00000000"
-        }
+var states = {
+    'solid': {
+        color: 'yellow'
     },
-    "moreGroove": {
-        1: {
-            "snare": "00100010",
-            "hihat": "01010101"
-        },
-        2: {
-            "snare": "00100011",
-            "hihat": "01011101"
-        }
+    'liquid': {
+        color: 'blue'
     },
-    "shaker": {
-        1: {
-            "snare": "00001000",
-            "hihat": "01100110"
-        },
-        2: {
-            "snare": "00001011",
-            "hihat": "11101110"
-        }
-    }
+    'melting': {
+        color: 'orange'
+    },
+    'freezing': {
+        color: 'purple'
+    },
+    'vaporization': {
+        color: 'orange'
+    },
+    'gas': {
+        color: 'gray'
+    },
+    'sublimation': {
+        color: 'orange'
+    },
+    'condensation': {
+        color: 'purple'
+    },
+    'deposition': {
+        color: 'purple'
+    },
+    'deionization': {
+        color: 'purple'
+    },
+    'ionization': {
+        color: 'orange'
+    },
+    'plasma': {
+        color: 'black'
+    },
 };
 
+window.states = states;
 
-var metronome = {
-    audioContext: null,
-    // Are we currently playing?
-    isPlaying: false,
-    // What note is currently last scheduled?
-    current16thNote: 1,
-    // tempo (in beats per minute)
-    tempo: 96.0,
-    // How frequently to call scheduling function  (in milliseconds)
-    lookahead: 25.0,
-    // How far ahead to schedule audio (sec),
-    // This is calculated from lookahead, and overlaps with next interval (in case the timer is late)
-    scheduleAheadTime: 0.1,
-    // when the next note is due.
-    nextNoteTime: 0.0,
-    // 0 == 16th, 1 == 8th, 2 == quarter note
-    noteResolution: 2,
-    // the last "box" we drew on the screen
-    last16thNoteDrawn: -1,
-    // the notes that have been put into the web audio, and may or may not have played yet. {note, time}
-    notesInQueue: [],
-    compass: 1,
-    //mrouds??
-    rounds: 3,
-    //initial state
-    currentState: "solid",
-    currentLevel: "percussion",
-    currentSequence: 1,
-    currentScore: {
-        1: false,
-        2: false,
-    },
-    currentBeat : 1,
-
-    sequences: sequences,
-
-    nextNote: function () {
-        // console.log("next note");
-        //console.log("next note " + this.current16thNote);
-        // Advance current note and time by a 16th note...
-        // Notice this picks up the CURRENT tempo value to calculate beat length.
-        var secondsPerBeat = 60.0 / this.tempo;
-        // Add beat length to last beat time
-        metronome.nextNoteTime += 0.25 * secondsPerBeat;
-
-        // Advance the beat number, wrap to one
-        metronome.current16thNote++;
-
-
-        if (metronome.current16thNote > 16) {
-            metronome.compass++;
-
-            if (metronome.compass > metronome.rounds) {
-                metronome.compass = 1;
+var points = {
+    1: {
+        'row': 4,
+        'column': 4,
+        'next': [2],
+        'state': 'solid',
+        'transition': false,
+        'clips': [
+            {
+                'track': 1,
+                'scenes': [1]
+            },
+            {
+                'track': 40,
+                'scenes': [1]
             }
-            metronome.current16thNote = 1;
+        ],
+    },
+    2: {
+        'row': 3,
+        'column': 5,
+        'next': [3],
+        'state': 'solid',
+        'transition': false,
+        'clips': [
+            {
+                'track': 4,
+                'scenes': [1]
+            },
+
+        ],
+    },
+    3: {
+        'row': 5,
+        'column': 5,
+        'next': [4, 13],
+        'state': 'solid',
+        'transition': false,
+        'clips': [
+            {
+                'track': 9,
+                'scenes': [1]
+            },
+
+        ],
+    },
+    4: {
+        'row': 5,
+        'column': 3,
+        'next': [5],
+        'state': 'solid',
+        'transition': false,
+        'clips': [
+            {
+                'track': 8,
+                'scenes': [1]
+            },
+        ],
+    },
+    5: {
+        'row': 3,
+        'column': 3,
+        'next': [6],
+        'state': 'solid',
+        'transition': false,
+        'clips': [
+            {
+                'track': 7,
+                'scenes': [1]
+            },
+        ],
+    },
+    6: {
+        'row': 2,
+        'column': 2,
+        'next': [7],
+        'state': 'melting',
+        'transition': true,
+        'clips': [
+            {
+                'track': 13,
+                'scenes': [5]
+            },
+        ],
+    },
+    7: {
+        'row': 1,
+        'column': 3,
+        'next': [8],
+        'state': 'liquid',
+        'transition': false,
+        'clips': [
+            {
+                'track': 39,
+                'scenes': [6]
+            },
+        ],
+    },
+    8: {
+        'row': 1,
+        'column': 5,
+        'next': [9],
+        'state': 'liquid',
+        'transition': false,
+        'clips': [
+            {
+                'track': 16,
+                'scenes': [6]
+            },
+        ],
+    },
+    9: {
+        'row': 1,
+        'column': 7,
+        'next': [10, 11],
+        'state': 'liquid',
+        'transition': false,
+        'clips': [
+            {
+                'track': 17,
+                'scenes': [6, 7, 8, 9]
+            },
+            {
+                'track': 18,
+                'scenes': [6, 7, 8, 9]
+            },
+            {
+                'track': 19,
+                'scenes': [6, 7, 8, 9]
+            },
+            {
+                'track': 20,
+                'scenes': [6, 7, 8, 9]
+            },
+        ],
+    },
+    10: {
+        'row': 2,
+        'column': 6,
+        'next': [2],
+        'state': 'freezing',
+        'transition': true,
+        'clips': [
+            {
+                'track': 14,
+                'scenes': [6]
+            },
+        ],
+    },
+    11: {
+        'row': 3,
+        'column': 7,
+        'next': [12],
+        'state': 'vaporization',
+        'transition': true,
+        'clips': [
+            {
+                'track': 11,
+                'scenes': [10]
+            },
+        ],
+    },
+    12: {
+        'row': 5,
+        'column': 7,
+        'next': [14],
+        'state': 'gas',
+        'transition': false,
+        'clips': [
+            {
+                'track': 40,
+                'scenes': [11]
+            },
+        ],
+    },
+    13: {
+        'row': 6,
+        'column': 6,
+        'next': [12],
+        'state': 'sublimation',
+        'transition': true,
+        'clips': [
+            {
+                'track': 11,
+                'scenes': [5]
+            },
+        ],
+    },
+    14: {
+        'row': 7,
+        'column': 7,
+        'next': [15, 20],
+        'state': 'gas',
+        'transition': false,
+        'clips': [
+            {
+                'track': 34,
+                'scenes': [11, 12, 13, 14, 15]
+            },
+            {
+                'track': 35,
+                'scenes': [11, 12, 13, 14, 15]
+            },
+            {
+                'track': 36,
+                'scenes': [11, 12, 13, 14, 15]
+            },
+            {
+                'track': 37,
+                'scenes': [11, 12, 13, 14, 15]
+            },
+        ],
+    },
+    15: {
+        'row': 7,
+        'column': 5,
+        'next': [16],
+        'state': 'gas',
+        'transition': false,
+        'clips': [
+            {
+                'track': 23,
+                'scenes': [11, 12, 13]
+            },
+            {
+                'track': 24,
+                'scenes': [11, 12, 13]
+            },
+            {
+                'track': 25,
+                'scenes': [11, 12, 13]
+            },
+            {
+                'track': 26,
+                'scenes': [11, 12, 13]
+            },
+            {
+                'track': 27,
+                'scenes': [11, 12, 13]
+            },
+            {
+                'track': 28,
+                'scenes': [11, 12, 13]
+            },
+            {
+                'track': 29,
+                'scenes': [11, 12, 13]
+            },
+            {
+                'track': 30,
+                'scenes': [11, 12, 13]
+            },
+        ],
+    },
+    16: {
+        'row': 7,
+        'column': 3,
+        'next': [17, 18],
+        'state': 'gas',
+        'transition': false,
+        'clips': [
+            {
+                'track': 31,
+                'scenes': [11]
+            },
+        ],
+    },
+    17: {
+        'row': 7,
+        'column': 1,
+        'next': [20],
+        'state': 'condensation',
+        'transition': true,
+        'clips': [
+            {
+                'track': 12,
+                'scenes': [10]
+            },
+        ],
+    },
+    18: {
+        'row': 6,
+        'column': 2,
+        'next': [4],
+        'state': 'deposition',
+        'transition': true,
+        'clips': [
+            {
+                'track': 12,
+                'scenes': [5]
+            },
+        ],
+    },
+    19: {
+        'row': 5,
+        'column': 1,
+        'next': [],
+        'state': 'deionization',
+        'transition': true,
+        'clips': [
+            {
+                'track': 31,
+                'scenes': [14, 15]
+            },
+        ],
+    },
+    20: {
+        'row': 1,
+        'column': 1,
+        'next': [21],
+        'state': 'ionization',
+        'transition': true,
+        'clips': [
+            {
+                'track': 13,
+                'scenes': [15]
+            },
+        ],
+    },
+    21: {
+        'row': 3,
+        'column': 1,
+        'next': [19],
+        'state': 'plasma',
+        'transition': true,
+        'clips': [
+            {
+                'track': 1,
+                'scenes': [1]
+            },
+            {
+                'track': 4,
+                'scenes': [1]
+            },
+            {
+                'track': 7,
+                'scenes': [16]
+            },
+            {
+                'track': 8,
+                'scenes': [1]
+            },
+            {
+                'track': 9,
+                'scenes': [1]
+            },
+            {
+                'track': 16,
+                'scenes': [6]
+            },
+            {
+                'track': 23,
+                'scenes': [11]
+            },
+            {
+                'track': 24,
+                'scenes': [11, 12, 13]
+            },
+            {
+                'track': 25,
+                'scenes': [11]
+            },
+            {
+                'track': 26,
+                'scenes': [11]
+            },
+            {
+                'track': 27,
+                'scenes': [11, 12, 13]
+            },
+            {
+                'track': 28,
+                'scenes': [11, 12, 13]
+            },
+            {
+                'track': 29,
+                'scenes': [11]
+            },
+            {
+                'track': 30,
+                'scenes': [11, 12, 13]
+            },
+            {
+                'track': 31,
+                'scenes': [16]
+            },
+            {
+                'track': 34,
+                'scenes': [11, 12, 13]
+            },
+            {
+                'track': 35,
+                'scenes': [11, 12, 13]
+            },
+            {
+                'track': 36,
+                'scenes': [11, 12, 13]
+            },
+            {
+                'track': 37,
+                'scenes': [11, 12, 13]
+            },
+            {
+                'track': 41,
+                'scenes': [16]
+            },
+
+        ],
+    },
+};
+
+window.points = points;
+
+
+var game = {
+    executeTransition: function(next, number)
+    {
+        game.stopClips();
+        let seconds = 20;
+        MateosUi.blockElement(seconds);
+        setTimeout(function(){
+            MateosUi.hidePoints();
+            MateosUi.showPoint(next);
+            game.playPoint(next);
+        },1000 * seconds);
+    },
+
+    playPoint: function (number) {
+        let point = window.points[number];
+        if(point.transition){
+            MateosUi.hidePoints();
+            MateosUi.showPoint(number);
+            game.executeTransition(point.next[0],number);
+        }else{
+            MateosUi.hidePoints();
+            $.each(point.next, function (i, number) {
+                MateosUi.showPoint(number);
+            });
         }
-    },
-    getUiStep: function (beatNumber) {
-        let beat = Math.round(beatNumber / 2);
-
-        return beat;
-    },
-
-    initSequence(element) {
-        MateosUi.blockElement(element);
-        MateosUi.showPattern(element, metronome.sequences[metronome.currentLevel][metronome.currentSequence][element]);
+        $.each(point.clips, function (i, clip) {
+            let scene = clip.scenes[Math.floor(Math.random() * clip.scenes.length)];
+            game.fireClip(clip.track,scene);
+        });
     },
 
-    evaluateSequence() {
-        const actualSequence = metronome.sequences[metronome.currentLevel][metronome.currentSequence]["snare"];
-        const success = actualSequence == MateosUi.getElementSequence("snare");
-        metronome.currentScore[metronome.currentSequence] = success;
-        if (success) {
-            MateosUi.updateFeedBack("Yeah!");
-        } else {
-            MateosUi.updateFeedBack("nope :(");
-        }
-        metronome.executeSequenceTransition();
-        MateosUi.updateInfo();
-    },
-
-    executeSequenceTransition() {
-        if (metronome.currentSequence == 1) {
-            metronome.levelUp();
-            console.log("level up 1");
-        } else if (metronome.currentSequence == 2) {
-            if (metronome.currentScore["1"] && metronome.currentScore["2"]) {
-                console.log("level up 2");
-                metronome.levelUp();
-            } else {
-                console.log("level down");
-                metronome.levelDown();
-            }
-        }
-    },
-
-    levelUp() {
-        if (metronome.currentLevel == "percussion") {
-            if (metronome.currentSequence == 1) {
-                metronome.currentSequence = 2;
-            } else if (metronome.currentSequence == 2) {
-                metronome.currentLevel = "moreGroove";
-                metronome.currentSequence = 1;
-            }
-        } else if (metronome.currentLevel == "moreGroove") {
-            if (metronome.currentSequence == 1) {
-                metronome.currentSequence = 2;
-            } else if (metronome.currentSequence == 2) {
-                metronome.currentLevel = "shaker";
-                metronome.currentSequence = 1;
-            }
-        } else if (metronome.currentLevel == "shaker") {
-            if (metronome.currentSequence == 1) {
-                metronome.currentSequence = 2;
-            } else if (metronome.currentSequence == 2) {
-                // metronome.currentLevel = "shaker";
-                metronome.currentSequence = 1;
-            }
-        }
-
-    },
-
-    levelDown() {
-        if (metronome.currentLevel == "percussion") {
-            metronome.currentSequence = 1;
-        } else if (metronome.currentLevel == "moreGroove") {
-            metronome.currentLevel = "percussion";
-            metronome.currentSequence = 1;
-        } else if (metronome.currentLevel == "shaker") {
-            metronome.currentLevel = "moreGroove";
-            metronome.currentSequence = 1;
-        }
-    },
-
-    scheduleNote: function (beatNumber, time) {
-        metronome.notesInQueue.push({note: beatNumber, time: time});
-        MateosUi.updateInfo();
-
-        if ((beatNumber % 2) == 0) {
-            var Beat = metronome.getUiStep(beatNumber);
-            MateosUi.setTempo(Beat);
-            metronome.currentBeat = Beat;
-        }
-        if (beatNumber == 1) {
-            if (metronome.compass == 1) {
-                metronome.executeLook();
-                metronome.fireClips();
-            } else if (metronome.compass == 3) {
-                metronome.fireClips();
-                metronome.executeValidate();
-            }
-        }
-        else if (beatNumber == 8) {
-            if (metronome.compass == 1) {
-                metronome.executeRepeat();
-            }
-        }
-        else if (beatNumber == 15) {
-            if (metronome.compass == 2) {
-                metronome.evaluateSequence();
-            }
-        }
-    },
-
-    executeLook: function () {
-        MateosUi.showInstruction("Look!");
-        MateosUi.updateFeedBack("");
-        metronome.initSequence("snare");
-        metronome.initSequence("hihat");
-
-    },
-
-    executeRepeat: function () {
-        MateosUi.showInstruction("Repeat");
-        MateosUi.hidePattern("snare");
-        MateosUi.hidePattern("hihat");
-        MateosUi.unblockElement("snare");
-        MateosUi.unblockElement("hihat");
-    },
-
-    executeValidate: function () {
-
-        MateosUi.blockElement("snare");
-        MateosUi.blockElement("hihat");
-        MateosUi.showInstruction("Validate")
-    },
-
-    scheduler: function () {
-        // while there are notes that will need to play before the next interval, schedule them and advance the pointer.
-        while ((metronome.nextNoteTime) < (metronome.audioContext.currentTime + metronome.scheduleAheadTime)) {
-            metronome.scheduleNote(metronome.current16thNote, metronome.nextNoteTime);
-            metronome.nextNote();
-        }
-    },
 
     play: function () {
-        $("#overlay").hide();
-        metronome.resetCurrents();
-        metronome.isPlaying = !metronome.isPlaying;
-        if (metronome.isPlaying) { // start playing
-            return metronome.doPlay();
-        } else {
-            return metronome.doStop();
-        }
+        game.reset();
     },
 
     doPlay: function () {
-        metronome.nextNoteTime = metronome.audioContext.currentTime;
-        timerWorker.postMessage("start");
         RemoteApi.create("live_set", function (err, api) {
             api.call("start_playing");
         });
@@ -269,147 +510,41 @@ var metronome = {
         return true;
     },
 
-    resetCurrents: function () {
-        metronome.current16thNote = 1;
-        metronome.compass = 1;
-        metronome.currentLevel = "percussion";
-        metronome.currentSequence = 1;
-        metronome.currentState = "solid";
-        metronome.currentScore = {1: false, 2: false};
-        metronome.currentBeat = 1;
-    },
-
 
     //on stop we reset tempo on client and live
-    doStop: function () {
-        timerWorker.postMessage("stop");
-        metronome.resetCurrents();
+    stopClips: function () {
         RemoteApi.create("live_set", function (err, api) {
-            api.call("stop_playing");
+            //api.call("stop_playing");
             api.call("stop_all_clips");
-            api.set("current_song_time", 0);
+            //api.set("current_song_time", 0);
         });
-        MateosUi.stop();
-        metronome.notesInQueue = [];
-        metronome.executeLook();
-        MateosUi.updateInfo();
 
         return false;
     },
 
-    // executeKickBeat: function (Beat) {
-    //     if ($(".ui-kick.selected[beat=" + Beat + "]").length) {
-    //         //fire clip
-    //         RemoteApi.create("live_set tracks 1 clip_slots 1", function (err, api) {
-    //             api.call('fire');
-    //         });
-    //     } else {
-    //         //fire empty clip
-    //         RemoteApi.create("live_set tracks 1 clip_slots 0", function (err, api) {
-    //             api.call('fire');
-    //         });
-    //     }
-    // },
 
-    executeSnareBeat: function () {
-        $(".ui-snare").each(function () {
-            let beat = parseInt($(this).attr("beat"));
-            let channel = beat + 4;
-            if ($(this).attr("selected")) {
-                RemoteApi.create("live_set tracks " + channel + "  clip_slots 1", function (err, api) {
-                    api.call('fire');
-                })
-            } else {
-                RemoteApi.create("live_set tracks " + channel + "  clip_slots 0", function (err, api) {
-                    api.call('fire');
-                });
-            }
+    fireClip: function (channel, scene) {
+        scene = scene - 1;
+        RemoteApi.create("live_set tracks " + channel + "  clip_slots " + scene, function (err, api) {
+            api.call('fire');
         })
-    },
-
-    executeHiHatBeat: function () {
-        $(".ui-hihat").each(function () {
-            let beat = parseInt($(this).attr("beat"));
-            let channel = beat + 13;
-            if ($(this).attr("selected")) {
-                RemoteApi.create("live_set tracks " + channel + "  clip_slots 1", function (err, api) {
-                    api.call('fire');
-                })
-            } else {
-                RemoteApi.create("live_set tracks " + channel + "  clip_slots 0", function (err, api) {
-                    api.call('fire');
-                });
-            }
-        });
-
-    },
-
-    fireClips: function () {
-        // metronome.executeKickBeat(Beat);
-        metronome.executeSnareBeat();
-        metronome.executeHiHatBeat();
 
     },
 
     draw: function () {
-        var currentNote = metronome.last16thNoteDrawn;
-        //var currentTime = this.audioContext.currentTime;
-        while (metronome.notesInQueue.length && metronome.notesInQueue[0].time < metronome.currentTime) {
-            currentNote = metronome.notesInQueue[0].note;
-            metronome.notesInQueue.splice(0, 1);   // remove note from queue
-        }
-        // We only need to draw if the note has moved.
-        if (metronome.last16thNoteDrawn != currentNote) {
-            // console.log("when? hwat?");
-            metronome.last16thNoteDrawn = currentNote;
-        }
-        // set up to draw again
-        requestAnimFrame(metronome.draw);
+
     },
 
 
     init: function () {
-        MateosUi.init();
-        // NOTE: THIS RELIES ON THE MONKEYPATCH LIBRARY BEING LOADED FROM
-        // Http://cwilso.github.io/AudioContext-MonkeyPatch/AudioContextMonkeyPatch.js
-        // TO WORK ON CURRENT CHROME!!  But this means our code can be properly
-        // spec-compliant, and work on Chrome, Safari and Firefox.
-        metronome.audioContext = new AudioContext();
+        MateosUi.init(points, states);
 
         // // if we wanted to load audio files, etc., this is where we should do it.
         console.log("init");
-        MateosUi.createPlayButton(metronome.play);
 
 
-        // window.onorientationchange = metronome.resetCanvas;
-        // window.onresize = metronome.resetCanvas;
-
-        requestAnimFrame(metronome.draw);    // start the drawing loop.
-
-        timerWorker = new Worker("metronomeworker.js");
-        timerWorker.onmessage = function (e) {
-            if (e.data == "tick") {
-                metronome.scheduler();
-            } else {
-                console.log("message: " + e.data);
-            }
-        };
-        timerWorker.postMessage({"interval": metronome.lookahead});
-        metronome.doStop()
     }
 };
 
-// First, let's shim the requestAnimationFrame API, with a setTimeout fallback
-window.requestAnimFrame = (function () {
-    return window.requestAnimationFrame ||
-        window.webkitRequestAnimationFrame ||
-        window.mozRequestAnimationFrame ||
-        window.oRequestAnimationFrame ||
-        window.msRequestAnimationFrame ||
-        function (callback) {
-            window.setTimeout(callback, 1000 / 60);
-        };
-})();
 
-window.metronome = metronome;
-// window.audioContext = audioContext;
+window.game = game;

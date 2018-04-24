@@ -1,142 +1,29 @@
-@import 'on-circle';
+#game-container {
+  //position: fixed;
+  //right: 0;
+  //bottom: 0;
+  //min-width: 100%;
+  //min-height: 100%;
+  #grid-container {
 
-.circle-container {
-  @include on-circle($item-count: 8, $circle-size: 300px, $item-size: 90px);
-
-  div.ui-tempo {
-    display: block;
-    max-width: 100%;
-    height: 90px;
-    border-radius: 50%;
-        background-image:url(buttons/kick-normal.png);
-    background-size: 100%;
-    // background-color: cadetblue;
-    //filter: grayscale(100%);
-
-    //transition: .15s;
-
-    &:hover,
-    &:active {
-      //filter: grayscale(0);
-      rotate: 45deg;
+    .row {
+      .column {
+        margin: 15px;
+        float: left;
+        height: 100px;
+        width: 100px;
+        color: purple;
+        .point{
+          height: 75px;
+          line-height: 75px;
+          width: 75px;
+          border-radius: 25px;
+          text-align: center;
+        }
+      }
+      clear: both;
     }
   }
-
-  div.ui-tempo.active {
-    background-image:url(buttons/kick-active.png);
-    background-size: 100%;
-  }
-}
-
- #kick-container {
-  @include on-circle($item-count: 8, $circle-size: 300px, $item-size: 90px);
-
-  div.ui-kick {
-    display: block;
-    width: 90px;
-    height: 90px;
-    max-width: 100%;
-    filter: grayscale(60%);
-
-    //transition: .15s;
-
-    &:hover,
-    &:active {
-      //filter: grayscale(0);
-    }
-
-  }
-  div.ui-kick.selected {
-    filter: grayscale(0);
-  }
-
-}
-
-
-#snare-container {
-  @include on-circle($item-count: 8, $circle-size: 550px, $item-size: 90px);
-
-  div.ui-snare {
-    display: block;
-    width: 80px;
-    height: 80px;
-    max-width: 100%;
-    background-image:url(buttons/snare-normal.png);
-    background-size: 100%;
-    filter: grayscale(75%);
-    transition: filter 0.4s linear;
-
-    //transition: .15s;
-
-    &:hover,
-    &:active {
-      //filter: grayscale(0);
-    }
-
-  }
-  div.ui-snare.selected {
-    filter: grayscale(0);
-  }
-
-}
-
-#hihat-container {
-  @include on-circle($item-count: 8, $circle-size: 800px, $item-size: 90px);
-
-  div.ui-hihat {
-    padding-top: -10px;
-    display: block;
-    width: 90px;
-    max-width: 100%;
-    //height: 135px;
-    //border-radius: 50%;
-    background-image:url(buttons/hihat-normal.png);
-    background-size: 100%;
-    filter: grayscale(60%);
-    width: 90px;
-    height: 90px;
-  
-    //transition: .15s;
-
-    &:hover,
-    &:active {
-      //filter: grayscale(0);
-    }
-
-  }
-  div.ui-hihat.selected {
-    filter: grayscale(0);
-  }
-
-}
-
-.game-container {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  -webkit-transform: translate(-50%, -50%);
-  transform: translate(-50%, -50%);
-  #instructions{
-    color: darkolivegreen;
-    font-size: 40px;
-    font-family: monospace;
-    position: relative;
-    top: 35px;
-  }
- 
-}
-
-.play-button {
-  border: 2px solid #333333;
-  border-radius: 3px;
-  width: 10%;
-  height: 30px;
-  text-align: center;
-  padding-top: 10px;
-  &:hover {
-    background-color: #737d7a;
-  }
-  margin-left: 45%;
 }
 
 #canvas-background {
@@ -155,54 +42,36 @@
   min-width: 100%;
   min-height: 100%;
   z-index: -1;
-  filter:opacity(40%);
+  filter: opacity(40%);
   background-color: black;
 }
 
-
-
 .infokeys {
-	background-image: url(buttons/key-indicators.png);
-    background-size: 100%;
-    height: 187px;
-    width: 566px;
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    margin: 80px;
+  //background-image: url(buttons/key-indicators.png);
+  //background-size: 100%;
+  //height: 187px;
+  //width: 566px;
+  //position: absolute;
+  //bottom: 0;
+  //right: 0;
+  //margin: 80px;
 }
 
-body{
-	background-color: black;
+body {
+  background-color: black;
 }
 
-.logo{
-	background-image: url(images/logo.png);
-	width: 300px;
-	height: auto;
-}
-
-
-#overlay {
-  position: fixed;
-  right: 0;
-  bottom: 0;
-  min-width: 100%;
-  min-height: 100%;
-  z-index: -1;
-  filter:opacity(40%);
-  background-color: #737d7a;
-  .message{
-    padding-top: 25%;
-    text-align: center;
-  }
+.logo {
+  background-image: url(images/logo.png);
+  width: 300px;
+  height: auto;
 }
 
 #info div {
   color: wheat;
 }
 
-#feedback{
+#feedback {
   margin-top: 50px;
   margin-left: 50px;
   color: wheat;

@@ -12,149 +12,43 @@
             src="https://code.jquery.com/jquery-3.3.1.min.js"
             integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
             crossorigin="anonymous"></script>
-    <script src="http://cwilso.github.io/AudioContext-MonkeyPatch/AudioContextMonkeyPatch.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/webmidi"></script>
+
 </head>
 <body >
-<!-- <canvas id="canvas-background">Error, canvas is not supported</canvas>-->
+
 <div class="logo"></div>
 
 <video autoplay muted loop id="bg-video">
   <source src="https://github.com/jmarconi/mateos/raw/master/target/background-solido.m4v" type="video/mp4">
 </video>
-<div id="particles-js"></div>
-<div class="game-container">
-    <div id="instructions">
+<div id="game-container">
+    <!--<div id="instructions">-->
+
+    <!--</div>-->
+    <div id='grid-container'>
+
 
     </div>
-    <ul class='circle-container'>
-
-        <div class="beat-counter"></div>
-        <li>
-            <div beat='3' class="ui-tempo"></div>
-        </li>
-        <li>
-            <div beat='4' class="ui-tempo"></div>
-        </li>
-        <li>
-            <div beat='5' class="ui-tempo"></div>
-        </li>
-        <li>
-            <div beat='6' class="ui-tempo"></div>
-        </li>
-        <li>
-            <div beat='7' class="ui-tempo"></div>
-        </li>
-        <li>
-            <div beat='8' class="ui-tempo"></div>
-        </li>
-        <li>
-            <div beat='1' class="ui-tempo"></div>
-        </li>
-        <li>
-            <div beat='2' class="ui-tempo"></div>
-        </li>
-    </ul>
-    <!--<ul id='kick-container'>-->
-        <!--<li>-->
-            <!--<div beat='3' class="ui-kick"></div>-->
-        <!--</li>-->
-        <!--<li>-->
-            <!--<div beat='4' class="ui-kick"></div>-->
-        <!--</li>-->
-        <!--<li>-->
-            <!--<div beat='5' class="ui-kick"></div>-->
-        <!--</li>-->
-        <!--<li>-->
-            <!--<div beat='6' class="ui-kick"></div>-->
-        <!--</li>-->
-        <!--<li>-->
-            <!--<div beat='7' class="ui-kick"></div>-->
-        <!--</li>-->
-        <!--<li>-->
-            <!--<div beat='8' class="ui-kick"></div>-->
-        <!--</li>-->
-        <!--<li>-->
-            <!--<div beat='1' class="ui-kick"></div>-->
-        <!--</li>-->
-        <!--<li>-->
-            <!--<div beat='2' class="ui-kick"></div>-->
-        <!--</li>-->
-    <!--</ul>-->
-
-    <ul id='snare-container'>
-        <li>
-            <div beat='3' class="ui-snare"></div>
-        </li>
-        <li>
-            <div beat='4' class="ui-snare"></div>
-        </li>
-        <li>
-            <div beat='5' class="ui-snare"></div>
-        </li>
-        <li>
-            <div beat='6' class="ui-snare"></div>
-        </li>
-        <li>
-            <div beat='7' class="ui-snare"></div>
-        </li>
-        <li>
-            <div beat='8' class="ui-snare"></div>
-        </li>
-        <li>
-            <div beat='1' class="ui-snare"></div>
-        </li>
-        <li>
-            <div beat='2' class="ui-snare"></div>
-        </li>
-    </ul>
-
-    <ul id='hihat-container'>
-        <li>
-            <div beat='3' class="ui-hihat"></div>
-        </li>
-        <li>
-            <div beat='4' class="ui-hihat"></div>
-        </li>
-        <li>
-            <div beat='5' class="ui-hihat"></div>
-        </li>
-        <li>
-            <div beat='6' class="ui-hihat"></div>
-        </li>
-        <li>
-            <div beat='7' class="ui-hihat"></div>
-        </li>
-        <li>
-            <div beat='8' class="ui-hihat"></div>
-        </li>
-        <li>
-            <div beat='1' class="ui-hihat"></div>
-        </li>
-        <li>
-            <div beat='2' class="ui-hihat"></div>
-        </li>
-    </ul>
 
 </div>
-<div class="circulobg"></div>
+<!--<div class="circulobg"></div>-->
 
-<div class="infokeys"></div>
+<!--<div class="infokeys"></div>-->
 
-<div id="info">
-    <div id="current-state">
-        Current State: <span class="place-holder"></span>
-    </div>
-    <div id="current-level">
-        Current Level: <span class="place-holder"></span>
-    </div>
-    <div id="current-sequence">
-        Current Sequence: <span class="place-holder"></span>
-    </div>
-    <div id="current-beat">
-        Current Beat: <span class="place-holder"></span>
-    </div>
-</div>
+<!--<div id="info">-->
+    <!--<div id="current-state">-->
+        <!--Current State: <span class="place-holder"></span>-->
+    <!--</div>-->
+    <!--<div id="current-level">-->
+        <!--Current Level: <span class="place-holder"></span>-->
+    <!--</div>-->
+    <!--<div id="current-sequence">-->
+        <!--Current Sequence: <span class="place-holder"></span>-->
+    <!--</div>-->
+    <!--<div id="current-beat">-->
+        <!--Current Beat: <span class="place-holder"></span>-->
+    <!--</div>-->
+<!--</div>-->
 
 <div id="feedback">
 
